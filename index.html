@@ -97,7 +97,12 @@
           </div>
 
           <div>
-            <label class="block font-bold text-slate-700 text-sm mb-1">Kata Laluan</label>
+            <div class="flex justify-between items-center mb-1">
+              <label class="block font-bold text-slate-700 text-sm">Kata Laluan</label>
+              <button type="button" id="btn-lupa-link" onclick="bukaModalLupaPassword()" class="text-xs text-teal-600 font-bold hover:underline">
+                Lupa Kata Laluan?
+              </button>
+            </div>
             <input type="password" id="auth-password" required minlength="6" placeholder="••••••••" class="w-full p-3 border-2 border-slate-300 rounded-xl focus:border-teal-500 outline-none">
           </div>
 
@@ -276,10 +281,10 @@
           <div>
             <label class="block font-bold text-slate-700 mb-1">Pilih Kategori Kumpulan Gambar Ini</label>
             <select id="pukal-kategori-auto" class="w-full p-3 border-2 border-slate-300 rounded-xl focus:border-indigo-500 outline-none font-bold text-slate-800">
+              <option value="Ahli Keluarga">Ahli Keluarga</option>
               <option value="Kata Nama">Kata Nama</option>
               <option value="Kata Kerja">Kata Kerja</option>
               <option value="Kata Adjektif">Kata Adjektif</option>
-              <option value="Ahli Keluarga">Ahli Keluarga</option>
             </select>
           </div>
 
@@ -311,10 +316,10 @@
           <div>
             <label class="block font-bold text-slate-700 mb-1">Kategori</label>
             <select id="kustom-kategori" class="w-full p-3 border-2 border-slate-300 rounded-xl focus:border-emerald-500 outline-none">
+              <option value="Ahli Keluarga">Ahli Keluarga</option>
               <option value="Kata Nama">Kata Nama</option>
               <option value="Kata Kerja">Kata Kerja</option>
               <option value="Kata Adjektif">Kata Adjektif</option>
-              <option value="Ahli Keluarga">Ahli Keluarga</option>
             </select>
           </div>
 
@@ -386,6 +391,28 @@
 
   </main>
 
+  <!-- MODAL LUPA KATA LALUAN -->
+  <div id="modal-lupa-password" class="fixed inset-0 bg-black/60 hidden items-center justify-center p-4 z-50">
+    <div class="bg-white rounded-3xl p-6 max-w-md w-full space-y-4 border-4 border-teal-400 shadow-2xl">
+      <div class="flex justify-between items-center border-b pb-2">
+        <h3 class="text-xl font-bold text-teal-800">🔑 Set Semula Kata Laluan</h3>
+        <button onclick="tutupModalLupaPassword()" class="text-slate-400 hover:text-slate-600 font-bold text-xl">✖</button>
+      </div>
+      <p class="text-sm text-slate-600 leading-relaxed">
+        Masukkan emel pendaftaran anda. Kami akan menghantar pautan pengesahan untuk menetapkan kata laluan baharu terus ke peti masuk emel anda.
+      </p>
+      <form onsubmit="hantarPautanLupaPassword(event)" class="space-y-4">
+        <div>
+          <label class="block font-bold text-slate-700 text-sm mb-1">Alamat Emel</label>
+          <input type="email" id="lupa-email" required placeholder="ibubapa@example.com" class="w-full p-3 border-2 border-slate-300 rounded-xl focus:border-teal-500 outline-none">
+        </div>
+        <button type="submit" id="btn-hantar-lupa" class="w-full bg-teal-500 hover:bg-teal-600 text-white border-b-4 border-teal-700 rounded-xl py-3 font-bold text-base btn-child">
+          Hantar Pautan Set Semula
+        </button>
+      </form>
+    </div>
+  </div>
+
   <!-- MODAL SUNTING PERKATAAN -->
   <div id="modal-edit" class="fixed inset-0 bg-black/60 hidden items-center justify-center p-4 z-50">
     <div class="bg-white rounded-3xl p-6 max-w-md w-full space-y-4 border-4 border-purple-400 shadow-2xl overflow-y-auto max-h-[90vh]">
@@ -405,10 +432,10 @@
         <div>
           <label class="block font-bold text-slate-700 text-sm mb-1">Kategori</label>
           <select id="edit-kategori" class="w-full p-3 border-2 border-slate-300 rounded-xl focus:border-purple-500 outline-none">
+            <option value="Ahli Keluarga">Ahli Keluarga</option>
             <option value="Kata Nama">Kata Nama</option>
             <option value="Kata Kerja">Kata Kerja</option>
             <option value="Kata Adjektif">Kata Adjektif</option>
-            <option value="Ahli Keluarga">Ahli Keluarga</option>
           </select>
         </div>
 
@@ -518,12 +545,21 @@
     }
 
     // GAMBAR PLACEHOLDER DEFAULT
-    function ciptaPlaceholder(teks, bg = "%2394A3B8") {
-      return `data:image/svg+xml;utf8,<svg xmlns="http://www.w3.org/2000/svg" width="200" height="200" viewBox="0 0 200 200"><rect width="200" height="200" rx="30" fill="${bg}"/><text x="50%" y="45%" dominant-baseline="middle" text-anchor="middle" font-family="sans-serif" font-size="20" font-weight="bold" fill="%23FFFFFF">${teks}</text><text x="50%" y="65%" dominant-baseline="middle" text-anchor="middle" font-family="sans-serif" font-size="12" fill="%23FFFFFF">(Sila Masuk Gambar)</text></svg>`;
+    function ciptaPlaceholder(teks, bg = "%230D9488") {
+      return `data:image/svg+xml;utf8,<svg xmlns="http://www.w3.org/2000/svg" width="200" height="200" viewBox="0 0 200 200"><rect width="200" height="200" rx="30" fill="${bg}"/><text x="50%" y="45%" dominant-baseline="middle" text-anchor="middle" font-family="Fredoka, sans-serif" font-size="22" font-weight="bold" fill="%23FFFFFF">${teks}</text><text x="50%" y="65%" dominant-baseline="middle" text-anchor="middle" font-family="Fredoka, sans-serif" font-size="12" fill="%23FEF08A">(Gambar Sedia Ada)</text></svg>`;
     }
 
     // DATA ASAS PERKATAAN
     const SENARAI_ASAS = [
+      // Ahli Keluarga
+      { id: 'ak1', kata: 'Ayah', kategori: 'Ahli Keluarga' },
+      { id: 'ak2', kata: 'Ibu', kategori: 'Ahli Keluarga' },
+      { id: 'ak3', kata: 'Abang', kategori: 'Ahli Keluarga' },
+      { id: 'ak4', kata: 'Kakak', kategori: 'Ahli Keluarga' },
+      { id: 'ak5', kata: 'Adik', kategori: 'Ahli Keluarga' },
+      { id: 'ak6', kata: 'Datuk', kategori: 'Ahli Keluarga' },
+      { id: 'ak7', kata: 'Nenek', kategori: 'Ahli Keluarga' },
+
       // Kata Nama
       { id: 'kn1', kata: 'Bola', kategori: 'Kata Nama' },
       { id: 'kn2', kata: 'Buku', kategori: 'Kata Nama' },
@@ -573,16 +609,7 @@
       { id: 'ka12', kata: 'Kotor', kategori: 'Kata Adjektif' },
       { id: 'ka13', kata: 'Cepat', kategori: 'Kata Adjektif' },
       { id: 'ka14', kata: 'Perlahan', kategori: 'Kata Adjektif' },
-      { id: 'ka15', kata: 'Cantik', kategori: 'Kata Adjektif' },
-
-      // Ahli Keluarga
-      { id: 'ak1', kata: 'Ayah', kategori: 'Ahli Keluarga' },
-      { id: 'ak2', kata: 'Ibu', kategori: 'Ahli Keluarga' },
-      { id: 'ak3', kata: 'Abang', kategori: 'Ahli Keluarga' },
-      { id: 'ak4', kata: 'Kakak', kategori: 'Ahli Keluarga' },
-      { id: 'ak5', kata: 'Adik', kategori: 'Ahli Keluarga' },
-      { id: 'ak6', kata: 'Datuk', kategori: 'Ahli Keluarga' },
-      { id: 'ak7', kata: 'Nenek', kategori: 'Ahli Keluarga' }
+      { id: 'ka15', kata: 'Cantik', kategori: 'Kata Adjektif' }
     ];
 
     const PUJIAN = ["Pandainya!", "Bagus!", "Hebat!", "Tahniah!", "Betul!"];
@@ -630,16 +657,19 @@
 
     function tukarModAuth() {
       modDaftar = !modDaftar;
+      const btnLupa = document.getElementById('btn-lupa-link');
       if (modDaftar) {
         document.getElementById('auth-tajuk').innerText = "Cipta Akaun Baharu";
         document.getElementById('auth-subtajuk').innerText = "Daftar untuk menyimpan dan menyelaraskan gambar perkataan anda.";
         document.getElementById('auth-btn-hantar').innerText = "Daftar";
         document.getElementById('auth-tukar-pilihan').innerHTML = 'Sudah mempunyai akaun? <button onclick="tukarModAuth()" class="text-teal-600 font-bold underline">Log Masuk Di Sini</button>';
+        if (btnLupa) btnLupa.classList.add('hidden');
       } else {
         document.getElementById('auth-tajuk').innerText = "Selamat Datang ke TambahKata";
         document.getElementById('auth-subtajuk').innerText = "Sila log masuk untuk menyelaraskan gambar di semua peranti anda.";
         document.getElementById('auth-btn-hantar').innerText = "Log Masuk";
         document.getElementById('auth-tukar-pilihan').innerHTML = 'Belum mempunyai akaun? <button onclick="tukarModAuth()" class="text-teal-600 font-bold underline">Daftar Di Sini</button>';
+        if (btnLupa) btnLupa.classList.remove('hidden');
       }
     }
 
@@ -656,6 +686,44 @@
         auth.signInWithEmailAndPassword(email, password)
           .catch(err => alert("Log Masuk Gagal: " + err.message));
       }
+    }
+
+    // FUNGSI LUPA KATA LALUAN
+    function bukaModalLupaPassword() {
+      const emailSemasa = document.getElementById('auth-email').value;
+      if (emailSemasa) {
+        document.getElementById('lupa-email').value = emailSemasa;
+      }
+      document.getElementById('modal-lupa-password').classList.remove('hidden');
+      document.getElementById('modal-lupa-password').classList.add('flex');
+    }
+
+    function tutupModalLupaPassword() {
+      document.getElementById('modal-lupa-password').classList.add('hidden');
+      document.getElementById('modal-lupa-password').classList.remove('flex');
+    }
+
+    function hantarPautanLupaPassword(e) {
+      e.preventDefault();
+      const email = document.getElementById('lupa-email').value.trim();
+      if (!email) return;
+
+      const btn = document.getElementById('btn-hantar-lupa');
+      btn.disabled = true;
+      btn.innerText = "Menghantar...";
+
+      auth.sendPasswordResetEmail(email)
+        .then(() => {
+          alert("Pautan set semula kata laluan telah dihantar ke emel anda! Sila semak peti masuk (inbox) atau folder Spam.");
+          tutupModalLupaPassword();
+        })
+        .catch((err) => {
+          alert("Ralat semasa menghantar pautan: " + err.message);
+        })
+        .finally(() => {
+          btn.disabled = false;
+          btn.innerText = "Hantar Pautan Set Semula";
+        });
     }
 
     function kawalLogKeluar() {
@@ -1148,7 +1216,7 @@
       }
     }
 
-    // LOGIK MUAT NAIK PUKAL AUTOMATIK (DARI PILIHAN BANYAK FAIL)
+    // LOGIK MUAT NAIK PUKAL AUTOMATIK
     async function prosesPukalAutoFiles(e) {
       e.preventDefault();
       if (!penggunaSemasa) {
@@ -1179,7 +1247,6 @@
           const namaKataClean = bersihkanNamaFail(fail.name);
           const compressedBase64 = await mampatkanGambar(fail, 500, 0.75);
 
-          // Semak jika perkataan wujud dalam senarai (Padanan nama)
           const wujud = senaraiSemua.find(x => x.kata.toLowerCase() === namaKataClean.toLowerCase());
 
           if (wujud) {
