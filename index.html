@@ -1,0 +1,1170 @@
+<!DOCTYPE html>
+<html lang="ms">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+  <title>TambahKata - Aplikasi Pembelajaran Bahasa Melayu</title>
+  
+  <!-- Tailwind CSS CDN -->
+  <script src="https://cdn.tailwindcss.com"></script>
+  <!-- Canvas Confetti CDN -->
+  <script src="https://cdn.jsdelivr.net/npm/canvas-confetti@1.6.0/dist/confetti.browser.min.js"></script>
+  <!-- Firebase App, Auth & Database (v9 Compatibility) -->
+  <script src="https://www.gstatic.com/firebasejs/9.22.1/firebase-app-compat.js"></script>
+  <script src="https://www.gstatic.com/firebasejs/9.22.1/firebase-auth-compat.js"></script>
+  <script src="https://www.gstatic.com/firebasejs/9.22.1/firebase-database-compat.js"></script>
+  
+  <style>
+    @import url('https://fonts.googleapis.com/css2?family=Fredoka:wght@400;600;700&display=swap');
+    
+    * {
+      font-family: 'Fredoka', cursive, sans-serif;
+      user-select: none;
+      -webkit-tap-highlight-color: transparent;
+    }
+
+    body {
+      background-color: #F0FDF4;
+      touch-action: manipulation;
+    }
+
+    .btn-child {
+      transition: transform 0.15s ease, box-shadow 0.15s ease;
+    }
+    
+    .btn-child:active {
+      transform: scale(0.93);
+    }
+
+    @keyframes starBounce {
+      0%, 100% { transform: scale(1) rotate(0deg); }
+      50% { transform: scale(1.3) rotate(15deg); }
+    }
+    .star-anim {
+      animation: starBounce 0.6s ease-in-out infinite;
+    }
+
+    ::-webkit-scrollbar {
+      width: 8px;
+    }
+    ::-webkit-scrollbar-track {
+      background: #F1F5F9;
+      border-radius: 10px;
+    }
+    ::-webkit-scrollbar-thumb {
+      background: #CBD5E1;
+      border-radius: 10px;
+    }
+  </style>
+</head>
+<body class="min-h-screen text-slate-800 flex flex-col justify-between">
+
+  <!-- TAJUK UTAMA / HEADER -->
+  <header class="bg-teal-500 text-white p-4 shadow-md flex justify-between items-center sticky top-0 z-50">
+    <div class="flex items-center space-x-2">
+      <button id="btn-home" onclick="paparMenu('menu-utama')" class="hidden items-center space-x-2 bg-teal-600 hover:bg-teal-700 px-4 py-2 rounded-2xl border-b-4 border-teal-800 text-lg font-bold btn-child">
+        <span>🏠</span>
+        <span>Menu Utama</span>
+      </button>
+      <button id="btn-logout-header" onclick="kawalLogKeluar()" class="hidden items-center space-x-1 bg-rose-500 hover:bg-rose-600 px-3 py-2 rounded-2xl border-b-4 border-rose-700 text-sm font-bold btn-child">
+        <span>🚪</span>
+        <span>Log Keluar</span>
+      </button>
+    </div>
+    <h1 class="text-xl md:text-2xl font-bold tracking-wide text-amber-200 drop-shadow">TambahKata</h1>
+    <div id="bintang-skor" class="flex items-center bg-teal-600 px-3 py-1.5 rounded-full border border-teal-400">
+      <span class="text-xl mr-1">⭐</span>
+      <span id="jumlah-bintang" class="font-bold text-xl text-yellow-300">0</span>
+    </div>
+  </header>
+
+  <!-- KANDUNGAN UTAMA -->
+  <main class="container mx-auto px-4 py-6 max-w-4xl flex-grow flex flex-col justify-center">
+
+    <!-- 0. SKRIN LOG MASUK & DAFTAR -->
+    <section id="skrin-auth" class="flex flex-col items-center justify-center space-y-4 my-auto">
+      <div class="bg-white p-6 md:p-8 rounded-3xl border-4 border-teal-300 shadow-xl w-full max-w-md space-y-5">
+        <div class="text-center">
+          <div class="text-5xl mb-2">🌟</div>
+          <h2 id="auth-tajuk" class="text-2xl font-bold text-teal-700">Selamat Datang ke TambahKata</h2>
+          <p id="auth-subtajuk" class="text-slate-500 text-sm">Sila log masuk untuk menyelaraskan gambar di semua peranti anda.</p>
+        </div>
+
+        <form id="auth-form" onsubmit="kawalHantarAuth(event)" class="space-y-4">
+          <div>
+            <label class="block font-bold text-slate-700 text-sm mb-1">Alamat Emel</label>
+            <input type="email" id="auth-email" required placeholder="ibubapa@example.com" class="w-full p-3 border-2 border-slate-300 rounded-xl focus:border-teal-500 outline-none">
+          </div>
+
+          <div>
+            <label class="block font-bold text-slate-700 text-sm mb-1">Kata Laluan</label>
+            <input type="password" id="auth-password" required minlength="6" placeholder="••••••••" class="w-full p-3 border-2 border-slate-300 rounded-xl focus:border-teal-500 outline-none">
+          </div>
+
+          <button type="submit" id="auth-btn-hantar" class="w-full bg-teal-500 hover:bg-teal-600 text-white border-b-6 border-teal-700 rounded-2xl py-3 font-bold text-xl btn-child">
+            Log Masuk
+          </button>
+        </form>
+
+        <div class="text-center pt-2 border-t">
+          <p id="auth-tukar-pilihan" class="text-sm text-slate-600">
+            Belum mempunyai akaun? 
+            <button onclick="tukarModAuth()" class="text-teal-600 font-bold underline">Daftar Di Sini</button>
+          </p>
+        </div>
+      </div>
+    </section>
+
+    <!-- 1. MENU UTAMA -->
+    <section id="menu-utama" class="hidden grid-cols-1 md:grid-cols-2 gap-4 my-auto">
+      <button onclick="mulaAktiviti('pemahaman')" class="bg-amber-400 hover:bg-amber-500 text-slate-900 border-b-8 border-amber-600 rounded-3xl p-5 flex flex-col items-center justify-center space-y-2 shadow-lg btn-child">
+        <span class="text-5xl">👉</span>
+        <span class="text-2xl font-bold">Pemahaman</span>
+        <span class="text-xs bg-white/60 px-3 py-1 rounded-full">Tunjuk Gambar</span>
+      </button>
+
+      <button onclick="mulaAktiviti('ekspresif')" class="bg-rose-400 hover:bg-rose-500 text-white border-b-8 border-rose-600 rounded-3xl p-5 flex flex-col items-center justify-center space-y-2 shadow-lg btn-child">
+        <span class="text-5xl">🗣️</span>
+        <span class="text-2xl font-bold">Ekspresif</span>
+        <span class="text-xs bg-black/10 px-3 py-1 rounded-full">Sebut Perkataan</span>
+      </button>
+
+      <button onclick="paparMenu('pilih-perkataan')" class="bg-sky-400 hover:bg-sky-500 text-white border-b-8 border-sky-600 rounded-3xl p-5 flex flex-col items-center justify-center space-y-2 shadow-lg btn-child">
+        <span class="text-5xl">📝</span>
+        <span class="text-2xl font-bold">Pilih Perkataan</span>
+        <span class="text-xs bg-black/10 px-3 py-1 rounded-full">Pilih Perkataan Latihan</span>
+      </button>
+
+      <button onclick="paparMenu('urus-gambar')" class="bg-purple-400 hover:bg-purple-500 text-white border-b-8 border-purple-600 rounded-3xl p-5 flex flex-col items-center justify-center space-y-2 shadow-lg btn-child">
+        <span class="text-5xl">🖼️</span>
+        <span class="text-2xl font-bold">Urus & Sunting Perkataan</span>
+        <span class="text-xs bg-black/10 px-3 py-1 rounded-full">Tukar Gambar & Edit Perkataan</span>
+      </button>
+
+      <button onclick="paparMenu('muat-naik')" class="bg-emerald-400 hover:bg-emerald-500 text-white border-b-8 border-emerald-600 rounded-3xl p-5 flex flex-col items-center justify-center space-y-2 shadow-lg btn-child">
+        <span class="text-5xl">➕</span>
+        <span class="text-2xl font-bold">Tambah Perkataan</span>
+        <span class="text-xs bg-black/10 px-3 py-1 rounded-full">Tambah Kata & Gambar Baru</span>
+      </button>
+
+      <button onclick="paparMenu('tetapan')" class="bg-indigo-400 hover:bg-indigo-500 text-white border-b-8 border-indigo-600 rounded-3xl p-5 flex flex-col items-center justify-center space-y-2 shadow-lg btn-child">
+        <span class="text-5xl">⚙️</span>
+        <span class="text-2xl font-bold">Tetapan</span>
+        <span class="text-xs bg-black/10 px-3 py-1 rounded-full">Laporan & Suara</span>
+      </button>
+    </section>
+
+    <!-- 2. PEMAHAMAN (TUNJUK GAMBAR) -->
+    <section id="pemahaman" class="hidden flex-col items-center space-y-6">
+      <div class="bg-white rounded-3xl p-6 shadow-xl border-4 border-amber-300 w-full text-center space-y-4">
+        <div class="flex items-center justify-center space-x-3">
+          <h2 id="arahan-pemahaman" class="text-2xl md:text-3xl font-bold text-teal-700">Tunjukkan Bola.</h2>
+          <button onclick="sebutTeks(document.getElementById('arahan-pemahaman').innerText)" class="bg-amber-400 p-3 rounded-full shadow text-xl btn-child">🔊</button>
+        </div>
+      </div>
+
+      <div class="grid grid-cols-2 gap-4 md:gap-8 w-full">
+        <button id="pilihan-0" onclick="semakPemahaman(0)" class="bg-white hover:bg-amber-50 border-8 border-slate-200 rounded-3xl p-4 flex flex-col items-center justify-center h-64 md:h-80 shadow-lg btn-child">
+          <img id="img-0" src="" alt="Pilihan 1" class="h-36 md:h-52 object-contain mb-2 rounded-xl" onerror="this.src=ciptaPlaceholder('Imej Ralat')">
+          <span id="label-0" class="text-2xl font-bold text-slate-700">---</span>
+        </button>
+
+        <button id="pilihan-1" onclick="semakPemahaman(1)" class="bg-white hover:bg-amber-50 border-8 border-slate-200 rounded-3xl p-4 flex flex-col items-center justify-center h-64 md:h-80 shadow-lg btn-child">
+          <img id="img-1" src="" alt="Pilihan 2" class="h-36 md:h-52 object-contain mb-2 rounded-xl" onerror="this.src=ciptaPlaceholder('Imej Ralat')">
+          <span id="label-1" class="text-2xl font-bold text-slate-700">---</span>
+        </button>
+      </div>
+
+      <button onclick="seterusnyaPemahaman()" class="w-full bg-emerald-500 hover:bg-emerald-600 text-white border-b-8 border-emerald-700 rounded-3xl py-4 text-2xl font-bold shadow-xl flex items-center justify-center space-x-3 btn-child">
+        <span>Seterusnya</span>
+        <span class="text-3xl">➡️</span>
+      </button>
+    </section>
+
+    <!-- 3. EKSPRESIF (SEBUT PERKATAAN) -->
+    <section id="ekspresif" class="hidden flex-col items-center space-y-6">
+      <div class="bg-white rounded-3xl p-6 shadow-xl border-4 border-rose-300 w-full text-center space-y-4">
+        <div class="flex items-center justify-center space-x-3">
+          <h2 class="text-2xl md:text-3xl font-bold text-rose-600">Ini apa?</h2>
+          <button onclick="sebutTeks('Ini apa?')" class="bg-rose-400 text-white p-3 rounded-full shadow text-xl btn-child">🔊</button>
+        </div>
+      </div>
+
+      <div class="bg-white border-8 border-slate-200 rounded-3xl p-6 flex flex-col items-center justify-center w-full max-w-md h-72 md:h-80 shadow-lg relative">
+        <img id="img-ekspresif" src="" alt="Gambar" class="h-44 md:h-56 object-contain mb-2 rounded-xl" onerror="this.src=ciptaPlaceholder('Imej Ralat')">
+        <span id="label-ekspresif" class="text-3xl font-bold text-slate-800">---</span>
+      </div>
+
+      <div class="bg-rose-50 border-2 border-rose-200 rounded-3xl p-4 w-full flex flex-col items-center space-y-3">
+        <div class="flex items-center space-x-4 w-full justify-center">
+          <button id="btn-rakam" onclick="kawalRakaman()" class="bg-rose-500 hover:bg-rose-600 text-white border-b-4 border-rose-700 rounded-2xl px-6 py-3 font-bold text-lg flex items-center space-x-2 btn-child">
+            <span id="ikon-rakam">🎤</span>
+            <span id="teks-rakam">Mula Rakam</span>
+          </button>
+          <button id="btn-main" onclick="mainkanRakaman()" disabled class="bg-sky-400 opacity-50 text-white border-b-4 border-sky-600 rounded-2xl px-6 py-3 font-bold text-lg flex items-center space-x-2 btn-child">
+            <span>🔊</span>
+            <span>Dengar</span>
+          </button>
+        </div>
+        <p id="status-rakam" class="text-sm text-slate-500 font-semibold">Tekan "Mula Rakam" untuk menyebut.</p>
+      </div>
+
+      <button onclick="seterusnyaEkspresif()" class="w-full bg-emerald-500 hover:bg-emerald-600 text-white border-b-8 border-emerald-700 rounded-3xl py-4 text-2xl font-bold shadow-xl flex items-center justify-center space-x-3 btn-child">
+        <span>Seterusnya</span>
+        <span class="text-3xl">➡️</span>
+      </button>
+    </section>
+
+    <!-- 4. PILIH PERKATAAN -->
+    <section id="pilih-perkataan" class="hidden flex-col space-y-5">
+      <div class="bg-sky-100 rounded-3xl p-5 border-4 border-sky-300">
+        <h2 class="text-2xl font-bold text-sky-800 mb-1">Pilih Perkataan Sasaran</h2>
+        <p class="text-slate-600 text-sm">Tandakan perkataan yang ingin difokuskan semasa latihan.</p>
+        <div class="flex flex-wrap gap-2 mt-3">
+          <button onclick="pilihSemua(true)" class="bg-sky-500 text-white px-4 py-2 rounded-xl text-sm font-bold border-b-2 border-sky-700 btn-child">Pilih Semua</button>
+          <button onclick="pilihSemua(false)" class="bg-slate-400 text-white px-4 py-2 rounded-xl text-sm font-bold border-b-2 border-slate-600 btn-child">Nyahpilih Semua</button>
+        </div>
+      </div>
+
+      <div id="senarai-kategori-pilihan" class="space-y-4 max-h-[50vh] overflow-y-auto pr-2">
+        <!-- Dimuatkan secara dinamik -->
+      </div>
+
+      <button onclick="simpanPilihanPerkataan()" class="bg-emerald-500 text-white border-b-6 border-emerald-700 rounded-2xl py-3 text-xl font-bold shadow-lg btn-child">
+        Simpan Pilihan
+      </button>
+    </section>
+
+    <!-- 5. TUKAR / URUS & SUNTING PERKATAAN -->
+    <section id="urus-gambar" class="hidden flex-col space-y-5">
+      <div class="bg-purple-100 rounded-3xl p-5 border-4 border-purple-300">
+        <h2 class="text-2xl font-bold text-purple-800 mb-1">Urus & Sunting Perkataan</h2>
+        <p class="text-slate-600 text-sm">Anda boleh menukar gambar, membetulkan ejaan perkataan, atau menukar kategori. Gambar boleh dimuat naik dari peranti atau ditampal dari pautan Google Drive!</p>
+      </div>
+
+      <div id="senarai-urus-gambar" class="space-y-4 max-h-[50vh] overflow-y-auto pr-2">
+        <!-- Dimuatkan secara dinamik -->
+      </div>
+    </section>
+
+    <!-- 6. MUAT NAIK GAMBAR BAHARU (KUSTOM) -->
+    <section id="muat-naik" class="hidden flex-col space-y-5">
+      <div class="bg-emerald-100 rounded-3xl p-5 border-4 border-emerald-300">
+        <h2 class="text-2xl font-bold text-emerald-800 mb-1">Tambah Perkataan Baru</h2>
+        <p class="text-slate-600 text-sm">Tambah perkataan khas berserta gambar (boleh guna fail peranti atau pautan Google Drive).</p>
+      </div>
+
+      <form id="form-muatnaik" onsubmit="tambahPerkataanKustom(event)" class="bg-white p-6 rounded-3xl border-4 border-slate-200 space-y-4 shadow-md">
+        <div>
+          <label class="block font-bold text-slate-700 mb-1">Nama Perkataan</label>
+          <input type="text" id="kustom-nama" required placeholder="Contoh: Bantal" class="w-full p-3 border-2 border-slate-300 rounded-xl focus:border-emerald-500 outline-none">
+        </div>
+
+        <div>
+          <label class="block font-bold text-slate-700 mb-1">Kategori</label>
+          <select id="kustom-kategori" class="w-full p-3 border-2 border-slate-300 rounded-xl focus:border-emerald-500 outline-none">
+            <option value="Kata Nama">Kata Nama</option>
+            <option value="Kata Kerja">Kata Kerja</option>
+            <option value="Kata Adjektif">Kata Adjektif</option>
+            <option value="Ahli Keluarga">Ahli Keluarga</option>
+          </select>
+        </div>
+
+        <div>
+          <label class="block font-bold text-slate-700 mb-1">Muat Naik Fail Gambar (Dari Peranti)</label>
+          <input type="file" id="kustom-fail" accept="image/*" class="w-full p-2 border-2 border-slate-300 rounded-xl">
+        </div>
+
+        <div class="text-center font-bold text-slate-400 text-xs">--- ATAU ---</div>
+
+        <div>
+          <label class="block font-bold text-slate-700 mb-1">Pautan URL Gambar / Google Drive Link</label>
+          <input type="url" id="kustom-url" placeholder="https://drive.google.com/file/d/... ATAU https://example.com/image.jpg" class="w-full p-3 border-2 border-slate-300 rounded-xl focus:border-emerald-500 outline-none text-sm">
+          <p class="text-xs text-slate-500 mt-1">*Jika guna Google Drive, pastikan kebenaran diubah kepada "Anyone with the link".</p>
+        </div>
+
+        <button type="submit" id="btn-submit-kustom" class="w-full bg-emerald-500 hover:bg-emerald-600 text-white border-b-6 border-emerald-700 rounded-2xl py-3 font-bold text-xl btn-child">
+          Simpan & Tambah
+        </button>
+      </form>
+    </section>
+
+    <!-- 7. TETAPAN & KEMAJUAN -->
+    <section id="tetapan" class="hidden flex-col space-y-5">
+      <div class="bg-indigo-100 rounded-3xl p-5 border-4 border-indigo-300">
+        <h2 class="text-2xl font-bold text-indigo-800 mb-1">Tetapan & Progress</h2>
+        <p class="text-slate-600 text-sm">Pantau perkembangan latihan anak anda.</p>
+      </div>
+
+      <div class="bg-white p-5 rounded-3xl border-4 border-slate-200 shadow-md space-y-3">
+        <h3 class="text-xl font-bold text-indigo-700 border-b pb-2">👤 Maklumat Akaun</h3>
+        <p class="text-sm text-slate-600">Log masuk sebagai: <span id="paparan-email-pengguna" class="font-bold text-slate-800">---</span></p>
+      </div>
+
+      <div class="bg-white p-5 rounded-3xl border-4 border-slate-200 shadow-md space-y-3">
+        <h3 class="text-xl font-bold text-indigo-700 border-b pb-2">📊 Laporan Ringkas</h3>
+        <div class="grid grid-cols-2 gap-3 text-center">
+          <div class="bg-indigo-50 p-3 rounded-2xl">
+            <span class="block text-2xl font-bold text-indigo-600" id="stat-selesai">0</span>
+            <span class="text-xs text-slate-500">Latihan Selesai</span>
+          </div>
+          <div class="bg-amber-50 p-3 rounded-2xl">
+            <span class="block text-2xl font-bold text-amber-600" id="stat-bintang">0</span>
+            <span class="text-xs text-slate-500">Jumlah Bintang</span>
+          </div>
+        </div>
+      </div>
+
+      <div class="bg-white p-5 rounded-3xl border-4 border-slate-200 shadow-md space-y-4">
+        <h3 class="text-xl font-bold text-indigo-700 border-b pb-2">🔊 Kawalan Audio</h3>
+        
+        <div class="flex justify-between items-center">
+          <span class="font-bold text-slate-700">Kelajuan Suara (TTS)</span>
+          <select id="tetapan-kelajuan" onchange="kemaskiniTetapan()" class="p-2 border border-slate-300 rounded-xl font-bold">
+            <option value="0.7">Perlahan</option>
+            <option value="0.9" selected>Normal</option>
+            <option value="1.1">Laju</option>
+          </select>
+        </div>
+
+        <div class="flex justify-between items-center">
+          <span class="font-bold text-slate-700">Kesan Bunyi</span>
+          <input type="checkbox" id="tetapan-bunyi" checked onchange="kemaskiniTetapan()" class="w-6 h-6 accent-indigo-600">
+        </div>
+      </div>
+
+      <div class="flex flex-col space-y-2">
+        <button onclick="resetKemajuan()" class="bg-amber-500 text-white border-b-4 border-amber-700 rounded-2xl py-3 font-bold text-lg btn-child">
+          Reset Rekod Kemajuan
+        </button>
+        <button onclick="kawalLogKeluar()" class="bg-rose-500 text-white border-b-4 border-rose-700 rounded-2xl py-3 font-bold text-lg btn-child">
+          Log Keluar Akaun
+        </button>
+      </div>
+    </section>
+
+  </main>
+
+  <!-- MODAL SUNTING PERKATAAN -->
+  <div id="modal-edit" class="fixed inset-0 bg-black/60 hidden items-center justify-center p-4 z-50">
+    <div class="bg-white rounded-3xl p-6 max-w-md w-full space-y-4 border-4 border-purple-400 shadow-2xl overflow-y-auto max-h-[90vh]">
+      <div class="flex justify-between items-center border-b pb-2">
+        <h3 class="text-xl font-bold text-purple-800">✏️ Sunting Perkataan</h3>
+        <button onclick="tutupModalEdit()" class="text-slate-400 hover:text-slate-600 font-bold text-xl">✖</button>
+      </div>
+
+      <form id="form-edit-perkataan" onsubmit="simpanPerubahanEdit(event)" class="space-y-4">
+        <input type="hidden" id="edit-id">
+
+        <div>
+          <label class="block font-bold text-slate-700 text-sm mb-1">Ejaan Perkataan</label>
+          <input type="text" id="edit-nama" required class="w-full p-3 border-2 border-slate-300 rounded-xl focus:border-purple-500 outline-none">
+        </div>
+
+        <div>
+          <label class="block font-bold text-slate-700 text-sm mb-1">Kategori</label>
+          <select id="edit-kategori" class="w-full p-3 border-2 border-slate-300 rounded-xl focus:border-purple-500 outline-none">
+            <option value="Kata Nama">Kata Nama</option>
+            <option value="Kata Kerja">Kata Kerja</option>
+            <option value="Kata Adjektif">Kata Adjektif</option>
+            <option value="Ahli Keluarga">Ahli Keluarga</option>
+          </select>
+        </div>
+
+        <div class="bg-slate-50 p-3 rounded-2xl border border-slate-200 flex items-center space-x-3">
+          <img id="edit-pratonton-img" class="w-16 h-16 object-cover rounded-xl border border-slate-300 bg-white">
+          <span class="text-xs text-slate-500 font-semibold">Pratonton Gambar Semasa</span>
+        </div>
+
+        <div>
+          <label class="block font-bold text-slate-700 text-sm mb-1">Tukar Gambar (Guna Fail Peranti)</label>
+          <input type="file" id="edit-fail-gambar" accept="image/*" class="w-full p-2 border-2 border-slate-300 rounded-xl text-sm">
+        </div>
+
+        <div class="text-center font-bold text-slate-400 text-xs">--- ATAU ---</div>
+
+        <div>
+          <label class="block font-bold text-slate-700 text-sm mb-1">Tukar Gambar (Guna Link Google Drive / URL Web)</label>
+          <input type="url" id="edit-url-gambar" placeholder="https://drive.google.com/file/d/..." class="w-full p-3 border-2 border-slate-300 rounded-xl focus:border-purple-500 outline-none text-sm">
+        </div>
+
+        <div class="flex space-x-2 pt-2">
+          <button type="submit" id="btn-simpan-edit" class="flex-1 bg-purple-500 hover:bg-purple-600 text-white border-b-4 border-purple-700 rounded-xl py-3 font-bold text-base btn-child">
+            Simpan Perubahan
+          </button>
+          <button type="button" onclick="padamPerkataanSemasa()" id="btn-padam-edit" class="bg-rose-500 hover:bg-rose-600 text-white border-b-4 border-rose-700 px-4 py-3 rounded-xl font-bold text-base btn-child">
+            🗑️
+          </button>
+        </div>
+      </form>
+    </div>
+  </div>
+
+  <!-- MODAL GANJARAN TAHNIAH -->
+  <div id="modal-ganjaran" class="fixed inset-0 bg-black/60 hidden items-center justify-center p-4 z-50">
+    <div class="bg-white rounded-3xl p-8 max-w-sm w-full text-center space-y-5 border-8 border-amber-400 shadow-2xl transform scale-100">
+      <div class="text-7xl star-anim">🎉</div>
+      <h2 class="text-3xl font-bold text-teal-700">Hebat!</h2>
+      <p class="text-xl font-semibold text-slate-600">Anda telah menyelesaikan 10 latihan!</p>
+      <button onclick="tutupGanjaran()" class="w-full bg-amber-400 hover:bg-amber-500 text-slate-900 border-b-6 border-amber-600 rounded-2xl py-3 font-bold text-xl btn-child">
+        Teruskan Latihan
+      </button>
+    </div>
+  </div>
+
+  <footer class="bg-slate-100 py-3 text-center text-xs text-slate-400 border-t">
+    TambahKata &copy; 2026 - Aplikasi Intervensi Bahasa Kebangsaan
+  </footer>
+
+  <!-- SCRIPT LOGIK APLIKASI -->
+  <script>
+    // ----------------------------------------------------
+    // CONFIGURE FIREBASE
+    // ----------------------------------------------------
+    const firebaseConfig = {
+      apiKey: "AIzaSyCIgmJ2hA9s-NGPZmoHReD4LM8GV_Xgjzg",
+      authDomain: "tambahkatabergambar.firebaseapp.com",
+      databaseURL: "https://tambahkatabergambar-default-rtdb.asia-southeast1.firebasedatabase.app",
+      projectId: "tambahkatabergambar",
+      storageBucket: "tambahkatabergambar.firebasestorage.app",
+      messagingSenderId: "92285418334",
+      appId: "1:92285418334:web:6d4db6fb718772176a6dcf"
+    };
+    
+    firebase.initializeApp(firebaseConfig);
+    const db = firebase.database();
+    const auth = firebase.auth();
+
+    // HELPER: Tukar Google Drive View Link kepada Direct Image Link Automatik
+    function tukarPautanGoogleDrive(url) {
+      if (!url) return '';
+      let strUrl = url.trim();
+      
+      // Corak 1: https://drive.google.com/file/d/FILE_ID/view...
+      const match1 = strUrl.match(/\/file\/d\/([^\/\?]+)/);
+      if (match1 && match1[1]) {
+        return `https://lh3.googleusercontent.com/d/${match1[1]}`;
+      }
+      
+      // Corak 2: https://drive.google.com/open?id=FILE_ID atau uc?id=FILE_ID
+      const match2 = strUrl.match(/[?&]id=([^&]+)/);
+      if (match2 && match2[1]) {
+        return `https://lh3.googleusercontent.com/d/${match2[1]}`;
+      }
+
+      return strUrl;
+    }
+
+    // FUNGSI MEMAMPATKAN GAMBAR FAIL
+    function mampatkanGambar(fail, saizMaks = 500, kualiti = 0.75) {
+      return new Promise((resolve, reject) => {
+        const pembaca = new FileReader();
+        pembaca.onload = (e) => {
+          const img = new Image();
+          img.onload = () => {
+            const canvas = document.createElement('canvas');
+            let lebar = img.width;
+            let tinggi = img.height;
+
+            if (lebar > tinggi) {
+              if (lebar > saizMaks) {
+                tinggi = Math.round((tinggi * saizMaks) / lebar);
+                lebar = saizMaks;
+              }
+            } else {
+              if (tinggi > saizMaks) {
+                lebar = Math.round((lebar * saizMaks) / tinggi);
+                tinggi = saizMaks;
+              }
+            }
+
+            canvas.width = lebar;
+            canvas.height = tinggi;
+            const ctx = canvas.getContext('2d');
+            ctx.drawImage(img, 0, 0, lebar, tinggi);
+            const base64Mampat = canvas.toDataURL('image/jpeg', kualiti);
+            resolve(base64Mampat);
+          };
+          img.onerror = (err) => reject(err);
+          img.src = e.target.result;
+        };
+        pembaca.onerror = (err) => reject(err);
+        pembaca.readAsDataURL(fail);
+      });
+    }
+
+    // GAMBAR PLACEHOLDER DEFAULT
+    function ciptaPlaceholder(teks, bg = "%2394A3B8") {
+      return `data:image/svg+xml;utf8,<svg xmlns="http://www.w3.org/2000/svg" width="200" height="200" viewBox="0 0 200 200"><rect width="200" height="200" rx="30" fill="${bg}"/><text x="50%" y="45%" dominant-baseline="middle" text-anchor="middle" font-family="sans-serif" font-size="20" font-weight="bold" fill="%23FFFFFF">${teks}</text><text x="50%" y="65%" dominant-baseline="middle" text-anchor="middle" font-family="sans-serif" font-size="12" fill="%23FFFFFF">(Sila Masuk Gambar)</text></svg>`;
+    }
+
+    // DATA ASAS PERKATAAN
+    const SENARAI_ASAS = [
+      // Kata Nama
+      { id: 'kn1', kata: 'Bola', kategori: 'Kata Nama' },
+      { id: 'kn2', kata: 'Buku', kategori: 'Kata Nama' },
+      { id: 'kn3', kata: 'Cawan', kategori: 'Kata Nama' },
+      { id: 'kn4', kata: 'Kereta', kategori: 'Kata Nama' },
+      { id: 'kn5', kata: 'Basikal', kategori: 'Kata Nama' },
+      { id: 'kn6', kata: 'Kasut', kategori: 'Kata Nama' },
+      { id: 'kn7', kata: 'Topi', kategori: 'Kata Nama' },
+      { id: 'kn8', kata: 'Sudu', kategori: 'Kata Nama' },
+      { id: 'kn9', kata: 'Pinggan', kategori: 'Kata Nama' },
+      { id: 'kn10', kata: 'Pensel', kategori: 'Kata Nama' },
+      { id: 'kn11', kata: 'Meja', kategori: 'Kata Nama' },
+      { id: 'kn12', kata: 'Kerusi', kategori: 'Kata Nama' },
+      { id: 'kn13', kata: 'Beg', kategori: 'Kata Nama' },
+      { id: 'kn14', kata: 'Bunga', kategori: 'Kata Nama' },
+      { id: 'kn15', kata: 'Telefon', kategori: 'Kata Nama' },
+
+      // Kata Kerja
+      { id: 'kk1', kata: 'Makan', kategori: 'Kata Kerja' },
+      { id: 'kk2', kata: 'Minum', kategori: 'Kata Kerja' },
+      { id: 'kk3', kata: 'Tidur', kategori: 'Kata Kerja' },
+      { id: 'kk4', kata: 'Duduk', kategori: 'Kata Kerja' },
+      { id: 'kk5', kata: 'Berdiri', kategori: 'Kata Kerja' },
+      { id: 'kk6', kata: 'Berlari', kategori: 'Kata Kerja' },
+      { id: 'kk7', kata: 'Melompat', kategori: 'Kata Kerja' },
+      { id: 'kk8', kata: 'Membaca', kategori: 'Kata Kerja' },
+      { id: 'kk9', kata: 'Menulis', kategori: 'Kata Kerja' },
+      { id: 'kk10', kata: 'Mandi', kategori: 'Kata Kerja' },
+      { id: 'kk11', kata: 'Menyapu', kategori: 'Kata Kerja' },
+      { id: 'kk12', kata: 'Membasuh', kategori: 'Kata Kerja' },
+      { id: 'kk13', kata: 'Memasak', kategori: 'Kata Kerja' },
+      { id: 'kk14', kata: 'Menendang', kategori: 'Kata Kerja' },
+      { id: 'kk15', kata: 'Memegang', kategori: 'Kata Kerja' },
+
+      // Kata Adjektif
+      { id: 'ka1', kata: 'Besar', kategori: 'Kata Adjektif' },
+      { id: 'ka2', kata: 'Kecil', kategori: 'Kata Adjektif' },
+      { id: 'ka3', kata: 'Panjang', kategori: 'Kata Adjektif' },
+      { id: 'ka4', kata: 'Pendek', kategori: 'Kata Adjektif' },
+      { id: 'ka5', kata: 'Tinggi', kategori: 'Kata Adjektif' },
+      { id: 'ka6', kata: 'Rendah', kategori: 'Kata Adjektif' },
+      { id: 'ka7', kata: 'Panas', kategori: 'Kata Adjektif' },
+      { id: 'ka8', kata: 'Sejuk', kategori: 'Kata Adjektif' },
+      { id: 'ka9', kata: 'Berat', kategori: 'Kata Adjektif' },
+      { id: 'ka10', kata: 'Ringan', kategori: 'Kata Adjektif' },
+      { id: 'ka11', kata: 'Bersih', kategori: 'Kata Adjektif' },
+      { id: 'ka12', kata: 'Kotor', kategori: 'Kata Adjektif' },
+      { id: 'ka13', kata: 'Cepat', kategori: 'Kata Adjektif' },
+      { id: 'ka14', kata: 'Perlahan', kategori: 'Kata Adjektif' },
+      { id: 'ka15', kata: 'Cantik', kategori: 'Kata Adjektif' },
+
+      // Ahli Keluarga
+      { id: 'ak1', kata: 'Ayah', kategori: 'Ahli Keluarga' },
+      { id: 'ak2', kata: 'Ibu', kategori: 'Ahli Keluarga' },
+      { id: 'ak3', kata: 'Abang', kategori: 'Ahli Keluarga' },
+      { id: 'ak4', kata: 'Kakak', kategori: 'Ahli Keluarga' },
+      { id: 'ak5', kata: 'Adik', kategori: 'Ahli Keluarga' },
+      { id: 'ak6', kata: 'Datuk', kategori: 'Ahli Keluarga' },
+      { id: 'ak7', kata: 'Nenek', kategori: 'Ahli Keluarga' }
+    ];
+
+    const PUJIAN = ["Pandainya!", "Bagus!", "Hebat!", "Tahniah!", "Betul!"];
+    const PUJIAN_EKSPRESIF = ["Bagus mencuba!", "Hebat!", "Pandai!", "Tahniah!", "Teruskan!", "Pintarnya!"];
+
+    // STATE APLIKASI
+    let penggunaSemasa = null;
+    let modDaftar = false;
+    let senaraiSemua = [];
+    let senaraiPilihan = [];
+    let indeksSemasa = 0;
+    let sasaranSasaran = null;
+    let soalanPemahaman = [];
+    let bilBintang = 0;
+    let bilLatihanSelesai = 0;
+    let kelajuanSuara = 0.9;
+    let adaBunyi = true;
+
+    let mediaRecorder = null;
+    let audioChunks = [];
+    let audioBlob = null;
+    let audioUrl = null;
+    let sedangRakam = false;
+
+    // LOGIK AUTHENTICATION
+    auth.onAuthStateChanged(user => {
+      if (user) {
+        penggunaSemasa = user;
+        document.getElementById('paparan-email-pengguna').innerText = user.email;
+        document.getElementById('btn-home').classList.remove('hidden');
+        document.getElementById('btn-home').classList.add('flex');
+        document.getElementById('btn-logout-header').classList.remove('hidden');
+        document.getElementById('btn-logout-header').classList.add('flex');
+        
+        muatDataPengguna(user.uid);
+      } else {
+        penggunaSemasa = null;
+        document.getElementById('btn-home').classList.add('hidden');
+        document.getElementById('btn-home').classList.remove('flex');
+        document.getElementById('btn-logout-header').classList.add('hidden');
+        document.getElementById('btn-logout-header').classList.remove('flex');
+        paparMenu('skrin-auth');
+      }
+    });
+
+    function tukarModAuth() {
+      modDaftar = !modDaftar;
+      if (modDaftar) {
+        document.getElementById('auth-tajuk').innerText = "Cipta Akaun Baharu";
+        document.getElementById('auth-subtajuk').innerText = "Daftar untuk menyimpan dan menyelaraskan gambar perkataan anda.";
+        document.getElementById('auth-btn-hantar').innerText = "Daftar";
+        document.getElementById('auth-tukar-pilihan').innerHTML = 'Sudah mempunyai akaun? <button onclick="tukarModAuth()" class="text-teal-600 font-bold underline">Log Masuk Di Sini</button>';
+      } else {
+        document.getElementById('auth-tajuk').innerText = "Selamat Datang ke TambahKata";
+        document.getElementById('auth-subtajuk').innerText = "Sila log masuk untuk menyelaraskan gambar di semua peranti anda.";
+        document.getElementById('auth-btn-hantar').innerText = "Log Masuk";
+        document.getElementById('auth-tukar-pilihan').innerHTML = 'Belum mempunyai akaun? <button onclick="tukarModAuth()" class="text-teal-600 font-bold underline">Daftar Di Sini</button>';
+      }
+    }
+
+    function kawalHantarAuth(e) {
+      e.preventDefault();
+      const email = document.getElementById('auth-email').value;
+      const password = document.getElementById('auth-password').value;
+
+      if (modDaftar) {
+        auth.createUserWithEmailAndPassword(email, password)
+          .then(() => alert("Akaun berjaya dicipta!"))
+          .catch(err => alert("Ralat Daftar: " + err.message));
+      } else {
+        auth.signInWithEmailAndPassword(email, password)
+          .catch(err => alert("Log Masuk Gagal: " + err.message));
+      }
+    }
+
+    function kawalLogKeluar() {
+      if (confirm("Adakah anda pasti mahu log keluar?")) {
+        auth.signOut().then(() => {
+          paparMenu('skrin-auth');
+        });
+      }
+    }
+
+    // MUAT DATA PENGGUNA DARI FIREBASE
+    function muatDataPengguna(uid) {
+      db.ref('users/' + uid).once('value').then(snapshot => {
+        const userData = snapshot.val() || {};
+        const gambarSimpanan = userData.gambar || {};
+        const editsSimpanan = userData.perkataan_edit || {};
+        const kustomSimpanan = userData.perkataan_kustom ? Object.values(userData.perkataan_kustom) : [];
+
+        // Bina senarai perkataan asas bersama kemaskini
+        senaraiSemua = SENARAI_ASAS.map(item => {
+          const editItem = editsSimpanan[item.id] || {};
+          return {
+            ...item,
+            kata: editItem.kata || item.kata,
+            kategori: editItem.kategori || item.kategori,
+            img: gambarSimpanan[item.id] || editItem.img || ciptaPlaceholder(item.kata)
+          };
+        });
+
+        // Tambah perkataan kustom
+        senaraiSemua = [...senaraiSemua, ...kustomSimpanan];
+        senaraiPilihan = [...senaraiSemua];
+
+        paparMenu('menu-utama');
+      }).catch(err => {
+        console.error("Ralat muat data:", err);
+        paparMenu('menu-utama');
+      });
+    }
+
+    // TTS BAHASA MELAYU
+    function sebutTeks(teks) {
+      if ('speechSynthesis' in window) {
+        window.speechSynthesis.cancel();
+        const uttr = new SpeechSynthesisUtterance(teks);
+        uttr.lang = 'ms-MY';
+        uttr.rate = kelajuanSuara;
+        
+        const voices = window.speechSynthesis.getVoices();
+        const msVoice = voices.find(v => v.lang.includes('ms') || v.lang.includes('id'));
+        if (msVoice) uttr.voice = msVoice;
+
+        window.speechSynthesis.speak(uttr);
+      }
+    }
+
+    // NAVIGASI MENU
+    function paparMenu(idMenu) {
+      const menus = ['skrin-auth', 'menu-utama', 'pemahaman', 'ekspresif', 'pilih-perkataan', 'urus-gambar', 'muat-naik', 'tetapan'];
+      menus.forEach(m => {
+        const el = document.getElementById(m);
+        if (m === idMenu) {
+          el.classList.remove('hidden');
+          if (m === 'menu-utama') {
+            el.classList.add('grid');
+          } else {
+            el.classList.add('flex');
+          }
+        } else {
+          el.classList.add('hidden');
+          el.classList.remove('grid', 'flex');
+        }
+      });
+
+      if (idMenu === 'pilih-perkataan') binaPilihanPerkataan();
+      if (idMenu === 'urus-gambar') binaUrusGambar();
+      if (idMenu === 'tetapan') kemaskiniLaporan();
+    }
+
+    // PEMAHAMAN (TUNJUK GAMBAR)
+    function mulaAktiviti(jenis) {
+      indeksSemasa = 0;
+      if (senaraiPilihan.length === 0) {
+        alert("Sila pilih sekurang-kurangnya satu perkataan dalam menu Pilih Perkataan.");
+        paparMenu('pilih-perkataan');
+        return;
+      }
+      paparMenu(jenis);
+      if (jenis === 'pemahaman') paparkanSoalanPemahaman();
+      if (jenis === 'ekspresif') paparkanSoalanEkspresif();
+    }
+
+    function paparkanSoalanPemahaman() {
+      const sasaran = senaraiPilihan[indeksSemasa % senaraiPilihan.length];
+      sasaranSasaran = sasaran;
+
+      let pengacau = senaraiSemua.filter(x => x.id !== sasaran.id);
+      let pilihanLain = pengacau.length > 0 
+        ? pengacau[Math.floor(Math.random() * pengacau.length)]
+        : sasaran;
+
+      soalanPemahaman = [sasaran, pilihanLain].sort(() => Math.random() - 0.5);
+
+      document.getElementById('arahan-pemahaman').innerText = `Tunjukkan ${sasaran.kata}.`;
+      
+      for (let i = 0; i < 2; i++) {
+        document.getElementById(`img-${i}`).src = soalanPemahaman[i].img;
+        document.getElementById(`label-${i}`).innerText = soalanPemahaman[i].kata;
+        const btn = document.getElementById(`pilihan-${i}`);
+        btn.className = "bg-white hover:bg-amber-50 border-8 border-slate-200 rounded-3xl p-4 flex flex-col items-center justify-center h-64 md:h-80 shadow-lg btn-child";
+      }
+
+      sebutTeks(`Tunjukkan ${sasaran.kata}`);
+    }
+
+    function semakPemahaman(indeksPilihan) {
+      const dipilih = soalanPemahaman[indeksPilihan];
+      const btn = document.getElementById(`pilihan-${indeksPilihan}`);
+
+      if (dipilih.id === sasaranSasaran.id) {
+        btn.classList.remove('border-slate-200');
+        btn.classList.add('border-emerald-500', 'bg-emerald-50');
+        
+        tambahBintang();
+        confetti({ particleCount: 70, spread: 60, origin: { y: 0.7 } });
+        
+        const pujianPilihan = PUJIAN[Math.floor(Math.random() * PUJIAN.length)];
+        sebutTeks(pujianPilihan);
+
+        setTimeout(() => {
+          seterusnyaPemahaman();
+        }, 1500);
+
+      } else {
+        btn.classList.remove('border-slate-200');
+        btn.classList.add('border-rose-300');
+        sebutTeks("Cuba lagi.");
+      }
+    }
+
+    function seterusnyaPemahaman() {
+      indeksSemasa++;
+      paparkanSoalanPemahaman();
+    }
+
+    // EKSPRESIF (SEBUT PERKATAAN & RAKAM)
+    function paparkanSoalanEkspresif() {
+      const item = senaraiPilihan[indeksSemasa % senaraiPilihan.length];
+      sasaranSasaran = item;
+
+      document.getElementById('img-ekspresif').src = item.img;
+      document.getElementById('label-ekspresif').innerText = item.kata;
+
+      resetRakamanUI();
+      sebutTeks("Ini apa?");
+    }
+
+    function kawalRakaman() {
+      if (!sedangRakam) {
+        navigator.mediaDevices.getUserMedia({ audio: true }).then(stream => {
+          mediaRecorder = new MediaRecorder(stream);
+          audioChunks = [];
+          
+          mediaRecorder.ondataavailable = e => audioChunks.push(e.data);
+          mediaRecorder.onstop = () => {
+            audioBlob = new Blob(audioChunks, { type: 'audio/mp3' });
+            audioUrl = URL.createObjectURL(audioBlob);
+            document.getElementById('btn-main').disabled = false;
+            document.getElementById('btn-main').classList.remove('opacity-50');
+          };
+
+          mediaRecorder.start();
+          sedangRakam = true;
+          document.getElementById('teks-rakam').innerText = "Selesai";
+          document.getElementById('ikon-rakam').innerText = "⏹️";
+          document.getElementById('status-rakam').innerText = "Sedang merakam... Sebut sekarang!";
+          document.getElementById('status-rakam').className = "text-sm text-rose-600 font-bold animate-pulse";
+        }).catch(err => {
+          alert("Sila benarkan kebenaran mikrofon untuk merakam.");
+        });
+      } else {
+        mediaRecorder.stop();
+        sedangRakam = false;
+        document.getElementById('teks-rakam').innerText = "Mula Rakam";
+        document.getElementById('ikon-rakam').innerText = "🎤";
+        document.getElementById('status-rakam').innerText = "Rakaman selesai!";
+        document.getElementById('status-rakam').className = "text-sm text-emerald-600 font-bold";
+
+        tambahBintang();
+        const pujian = PUJIAN_EKSPRESIF[Math.floor(Math.random() * PUJIAN_EKSPRESIF.length)];
+        sebutTeks(pujian);
+      }
+    }
+
+    function mainkanRakaman() {
+      if (audioUrl) {
+        const audio = new Audio(audioUrl);
+        audio.play();
+      }
+    }
+
+    function resetRakamanUI() {
+      sedangRakam = false;
+      audioUrl = null;
+      document.getElementById('teks-rakam').innerText = "Mula Rakam";
+      document.getElementById('ikon-rakam').innerText = "🎤";
+      document.getElementById('btn-main').disabled = true;
+      document.getElementById('btn-main').classList.add('opacity-50');
+      document.getElementById('status-rakam').innerText = "Tekan \"Mula Rakam\" untuk menyebut.";
+      document.getElementById('status-rakam').className = "text-sm text-slate-500 font-semibold";
+    }
+
+    function seterusnyaEkspresif() {
+      indeksSemasa++;
+      paparkanSoalanEkspresif();
+    }
+
+    // PILIH PERKATAAN
+    function binaPilihanPerkataan() {
+      const kontena = document.getElementById('senarai-kategori-pilihan');
+      kontena.innerHTML = "";
+
+      const kategoriMap = {};
+      senaraiSemua.forEach(item => {
+        if (!kategoriMap[item.kategori]) kategoriMap[item.kategori] = [];
+        kategoriMap[item.kategori].push(item);
+      });
+
+      for (let kat in kategoriMap) {
+        const divKat = document.createElement('div');
+        divKat.className = "bg-white p-4 rounded-2xl border-2 border-slate-200 shadow-sm space-y-3";
+        
+        let htmlPilihan = `
+          <div class="border-b pb-2">
+            <h3 class="font-bold text-lg text-slate-700">${kat}</h3>
+          </div>
+          <div class="grid grid-cols-2 md:grid-cols-3 gap-2">
+        `;
+
+        kategoriMap[kat].forEach(item => {
+          const wujud = senaraiPilihan.some(p => p.id === item.id);
+          htmlPilihan += `
+            <label class="flex items-center space-x-2 bg-slate-50 p-2.5 rounded-xl cursor-pointer hover:bg-sky-50 border border-slate-200">
+              <input type="checkbox" data-id="${item.id}" ${wujud ? 'checked' : ''} class="w-5 h-5 accent-sky-500 rounded">
+              <span class="text-base font-bold text-slate-800 truncate">${item.kata}</span>
+            </label>
+          `;
+        });
+
+        htmlPilihan += `</div>`;
+        divKat.innerHTML = htmlPilihan;
+        kontena.appendChild(divKat);
+      }
+    }
+
+    function pilihSemua(status) {
+      const inputs = document.querySelectorAll('#senarai-kategori-pilihan input[type="checkbox"]');
+      inputs.forEach(i => i.checked = status);
+    }
+
+    function simpanPilihanPerkataan() {
+      const inputs = document.querySelectorAll('#senarai-kategori-pilihan input[type="checkbox"]');
+      const dipilihs = [];
+      inputs.forEach(i => {
+        if (i.checked) {
+          const id = i.getAttribute('data-id');
+          const item = senaraiSemua.find(x => x.id === id);
+          if (item) dipilihs.push(item);
+        }
+      });
+
+      if (dipilihs.length === 0) {
+        alert("Sila pilih sekurang-kurangnya 1 perkataan.");
+        return;
+      }
+
+      senaraiPilihan = dipilihs;
+      alert("Pilihan perkataan sasaran disimpan!");
+      paparMenu('menu-utama');
+    }
+
+    // URUS & SUNTING PERKATAAN
+    function binaUrusGambar() {
+      const kontena = document.getElementById('senarai-urus-gambar');
+      kontena.innerHTML = "";
+
+      const kategoriMap = {};
+      senaraiSemua.forEach(item => {
+        if (!kategoriMap[item.kategori]) kategoriMap[item.kategori] = [];
+        kategoriMap[item.kategori].push(item);
+      });
+
+      for (let kat in kategoriMap) {
+        const divKat = document.createElement('div');
+        divKat.className = "bg-white p-4 rounded-2xl border-2 border-slate-200 shadow-sm space-y-3";
+        
+        let htmlUrus = `
+          <div class="border-b pb-2">
+            <h3 class="font-bold text-lg text-purple-700">${kat}</h3>
+          </div>
+          <div class="grid grid-cols-1 md:grid-cols-2 gap-3">
+        `;
+
+        kategoriMap[kat].forEach(item => {
+          htmlUrus += `
+            <div class="flex items-center justify-between bg-slate-50 p-2.5 rounded-2xl border border-slate-200">
+              <div class="flex items-center space-x-3 overflow-hidden">
+                <img src="${item.img}" class="w-12 h-12 object-cover rounded-xl bg-white border border-slate-300" onerror="this.src=ciptaPlaceholder('Imej Ralat')">
+                <span class="text-base font-bold text-slate-800">${item.kata}</span>
+              </div>
+              <button onclick="bukaModalEdit('${item.id}')" class="bg-purple-500 hover:bg-purple-600 text-white px-3 py-2 rounded-xl text-xs font-bold shadow btn-child flex items-center space-x-1">
+                <span>✏️</span>
+                <span>Sunting</span>
+              </button>
+            </div>
+          `;
+        });
+
+        htmlUrus += `</div>`;
+        divKat.innerHTML = htmlUrus;
+        kontena.appendChild(divKat);
+      }
+    }
+
+    function bukaModalEdit(id) {
+      const item = senaraiSemua.find(x => x.id === id);
+      if (!item) return;
+
+      document.getElementById('edit-id').value = item.id;
+      document.getElementById('edit-nama').value = item.kata;
+      document.getElementById('edit-kategori').value = item.kategori;
+      document.getElementById('edit-pratonton-img').src = item.img;
+      document.getElementById('edit-fail-gambar').value = '';
+      document.getElementById('edit-url-gambar').value = item.img.startsWith('http') ? item.img : '';
+
+      document.getElementById('modal-edit').classList.remove('hidden');
+      document.getElementById('modal-edit').classList.add('flex');
+    }
+
+    function tutupModalEdit() {
+      document.getElementById('modal-edit').classList.add('hidden');
+      document.getElementById('modal-edit').classList.remove('flex');
+    }
+
+    async function simpanPerubahanEdit(e) {
+      e.preventDefault();
+      const id = document.getElementById('edit-id').value;
+      const nama = document.getElementById('edit-nama').value.trim();
+      const kategori = document.getElementById('edit-kategori').value;
+      const fail = document.getElementById('edit-fail-gambar').files[0];
+      const urlInput = document.getElementById('edit-url-gambar').value;
+
+      if (!nama || !penggunaSemasa) return;
+
+      try {
+        const btn = document.getElementById('btn-simpan-edit');
+        btn.innerText = "Menyimpan...";
+        btn.disabled = true;
+
+        const itemObj = senaraiSemua.find(x => x.id === id);
+        let barukGambar = itemObj ? itemObj.img : '';
+
+        if (fail) {
+          barukGambar = await mampatkanGambar(fail, 500, 0.75);
+        } else if (urlInput.trim()) {
+          barukGambar = tukarPautanGoogleDrive(urlInput);
+        }
+
+        // Kemaskini tempatan (state)
+        if (itemObj) {
+          itemObj.kata = nama;
+          itemObj.kategori = kategori;
+          itemObj.img = barukGambar;
+        }
+
+        const itemPilihan = senaraiPilihan.find(x => x.id === id);
+        if (itemPilihan) {
+          itemPilihan.kata = nama;
+          itemPilihan.kategori = kategori;
+          itemPilihan.img = barukGambar;
+        }
+
+        // Simpan ke Firebase Database
+        if (id.startsWith('kustom_')) {
+          await db.ref(`users/${penggunaSemasa.uid}/perkataan_kustom/${id}`).set({
+            id: id,
+            kata: nama,
+            kategori: kategori,
+            img: barukGambar
+          });
+        } else {
+          await db.ref(`users/${penggunaSemasa.uid}/perkataan_edit/${id}`).set({
+            kata: nama,
+            kategori: kategori,
+            img: barukGambar
+          });
+          await db.ref(`users/${penggunaSemasa.uid}/gambar/${id}`).set(barukGambar);
+        }
+
+        alert("Perubahan berjaya disimpan!");
+        tutupModalEdit();
+        binaUrusGambar();
+
+      } catch (err) {
+        alert("Ralat semasa menyimpan: " + err.message);
+      } finally {
+        const btn = document.getElementById('btn-simpan-edit');
+        btn.innerText = "Simpan Perubahan";
+        btn.disabled = false;
+      }
+    }
+
+    async function padamPerkataanSemasa() {
+      const id = document.getElementById('edit-id').value;
+      if (!id || !penggunaSemasa) return;
+
+      if (confirm("Adakah anda pasti mahu memadam/mereset perkataan ini?")) {
+        try {
+          if (id.startsWith('kustom_')) {
+            await db.ref(`users/${penggunaSemasa.uid}/perkataan_kustom/${id}`).remove();
+          } else {
+            await db.ref(`users/${penggunaSemasa.uid}/perkataan_edit/${id}`).remove();
+            await db.ref(`users/${penggunaSemasa.uid}/gambar/${id}`).remove();
+          }
+
+          senaraiSemua = senaraiSemua.filter(x => x.id !== id);
+          senaraiPilihan = senaraiPilihan.filter(x => x.id !== id);
+
+          alert("Perkataan telah dipadam/direset.");
+          tutupModalEdit();
+          binaUrusGambar();
+        } catch (err) {
+          alert("Ralat memadam: " + err.message);
+        }
+      }
+    }
+
+    // TAMBAH PERKATAAN KUSTOM BAHARU
+    async function tambahPerkataanKustom(e) {
+      e.preventDefault();
+      const nama = document.getElementById('kustom-nama').value.trim();
+      const kategori = document.getElementById('kustom-kategori').value;
+      const fail = document.getElementById('kustom-fail').files[0];
+      const urlInput = document.getElementById('kustom-url').value;
+
+      if (!nama || (!fail && !urlInput.trim()) || !penggunaSemasa) {
+        alert("Sila masukkan nama perkataan dan pilih sekurang-kurangnya satu fail gambar ATAU pautan URL/Google Drive.");
+        return;
+      }
+
+      try {
+        const btn = document.getElementById('btn-submit-kustom');
+        btn.disabled = true;
+        btn.innerText = "Memproses Gambar...";
+
+        let finalImg = '';
+        if (fail) {
+          finalImg = await mampatkanGambar(fail, 500, 0.75);
+        } else if (urlInput.trim()) {
+          finalImg = tukarPautanGoogleDrive(urlInput);
+        }
+
+        const itemBaharu = {
+          id: 'kustom_' + Date.now(),
+          kata: nama,
+          kategori: kategori,
+          img: finalImg
+        };
+
+        senaraiSemua.push(itemBaharu);
+        senaraiPilihan.push(itemBaharu);
+
+        await db.ref('users/' + penggunaSemasa.uid + '/perkataan_kustom/' + itemBaharu.id).set(itemBaharu);
+        alert(`Perkataan baru "${nama}" berjaya ditambah!`);
+        document.getElementById('form-muatnaik').reset();
+        paparMenu('menu-utama');
+
+      } catch (err) {
+        alert("Ralat Simpan: " + err.message);
+      } finally {
+        const btn = document.getElementById('btn-submit-kustom');
+        btn.disabled = false;
+        btn.innerText = "Simpan & Tambah";
+      }
+    }
+
+    // GANJARAN BINTANG
+    function tambahBintang() {
+      bilBintang++;
+      bilLatihanSelesai++;
+      document.getElementById('jumlah-bintang').innerText = bilBintang;
+
+      if (bilLatihanSelesai % 10 === 0) {
+        document.getElementById('modal-ganjaran').classList.remove('hidden');
+        document.getElementById('modal-ganjaran').classList.add('flex');
+        confetti({ particleCount: 150, spread: 100, origin: { y: 0.5 } });
+        sebutTeks("Hebat! Anda sudah selesai!");
+      }
+    }
+
+    function tutupGanjaran() {
+      document.getElementById('modal-ganjaran').classList.add('hidden');
+      document.getElementById('modal-ganjaran').classList.remove('flex');
+    }
+
+    // TETAPAN & LAPORAN
+    function kemaskiniTetapan() {
+      kelajuanSuara = parseFloat(document.getElementById('tetapan-kelajuan').value);
+      adaBunyi = document.getElementById('tetapan-bunyi').checked;
+    }
+
+    function kemaskiniLaporan() {
+      document.getElementById('stat-selesai').innerText = bilLatihanSelesai;
+      document.getElementById('stat-bintang').innerText = bilBintang;
+    }
+
+    function resetKemajuan() {
+      if (confirm("Adakah anda pasti mahu mereset semua bilangan bintang dan latihan selesai?")) {
+        bilBintang = 0;
+        bilLatihanSelesai = 0;
+        document.getElementById('jumlah-bintang').innerText = bilBintang;
+        kemaskiniLaporan();
+        alert("Kemajuan telah direset.");
+      }
+    }
+
+    window.onload = () => {
+      if ('speechSynthesis' in window) {
+        window.speechSynthesis.onvoiceschanged = () => {
+          window.speechSynthesis.getVoices();
+        };
+      }
+    };
+  </script>
+</body>
+</html>
