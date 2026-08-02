@@ -249,7 +249,6 @@
 
     <!-- 6. MUAT NAIK GAMBAR (PUKAL AUTOMATIK / INDIVIDU) -->
     <section id="muat-naik" class="hidden flex-col space-y-5">
-      <!-- Pilihan Mod Muat Naik -->
       <div class="flex bg-slate-200 p-1.5 rounded-2xl">
         <button id="tab-mod-pukal" onclick="tukarTabMuatNaik('pukal')" class="flex-1 bg-white py-2.5 rounded-xl font-bold text-indigo-700 shadow-md transition">
           ⚡ Muat Naik Pukal Automatik
@@ -265,10 +264,9 @@
           <h2 class="text-2xl font-bold text-indigo-800">🚀 Muat Naik Pukal Automatik</h2>
           <p class="text-slate-700 text-sm leading-relaxed">
             <strong>Cara Penggunaan:</strong><br>
-            1. Muat turun folder gambar dari Google Drive ke komputer/telefon anda.<br>
-            2. Pilih <strong>Kategori</strong> di bawah.<br>
-            3. Tekan <strong>"Pilih Banyak Gambar Sekaligus"</strong> dan pilih semua gambar folder tersebut.<br>
-            4. Sistem akan mengecam nama perkataan daripada nama fail secara automatik (contoh: <code class="bg-white px-1.5 py-0.5 rounded border">Bola.jpg</code> ➔ <strong>Bola</strong>)!
+            1. Pilih <strong>Kategori</strong> di bawah.<br>
+            2. Tekan kawasan muat naik dan pilih fail gambar dari peranti anda.<br>
+            3. Nama perkataan akan dicam daripada nama fail secara automatik (contoh: <code class="bg-white px-1.5 py-0.5 rounded border">Ayah.jpg</code> ➔ <strong>Ayah</strong>)!
           </p>
         </div>
 
@@ -276,17 +274,17 @@
           <div>
             <label class="block font-bold text-slate-700 mb-1">Pilih Kategori Kumpulan Gambar Ini</label>
             <select id="pukal-kategori-auto" class="w-full p-3 border-2 border-slate-300 rounded-xl focus:border-indigo-500 outline-none font-bold text-slate-800">
+              <option value="Ahli Keluarga">Ahli Keluarga</option>
               <option value="Kata Nama">Kata Nama</option>
               <option value="Kata Kerja">Kata Kerja</option>
               <option value="Kata Adjektif">Kata Adjektif</option>
-              <option value="Ahli Keluarga">Ahli Keluarga</option>
             </select>
           </div>
 
           <div>
             <label class="block font-bold text-slate-700 mb-1">Pilih Fail Gambar (Boleh pilih banyak sekaligus)</label>
             <input type="file" id="pukal-files-input" accept="image/*" multiple required class="w-full p-3 border-2 border-dashed border-indigo-400 bg-indigo-50/50 rounded-2xl cursor-pointer">
-            <p class="text-xs text-slate-500 mt-1">*Anda boleh tekan `Ctrl+A` atau `Select All` semasa memilih gambar di peranti anda.</p>
+            <p class="text-xs text-slate-500 mt-1">*Boleh tekan `Ctrl+A` atau `Select All` semasa memilih gambar di peranti anda.</p>
           </div>
 
           <button type="submit" id="btn-submit-pukal-auto" class="w-full bg-indigo-500 hover:bg-indigo-600 text-white border-b-6 border-indigo-700 rounded-2xl py-3.5 font-bold text-xl btn-child">
@@ -311,10 +309,10 @@
           <div>
             <label class="block font-bold text-slate-700 mb-1">Kategori</label>
             <select id="kustom-kategori" class="w-full p-3 border-2 border-slate-300 rounded-xl focus:border-emerald-500 outline-none">
+              <option value="Ahli Keluarga">Ahli Keluarga</option>
               <option value="Kata Nama">Kata Nama</option>
               <option value="Kata Kerja">Kata Kerja</option>
               <option value="Kata Adjektif">Kata Adjektif</option>
-              <option value="Ahli Keluarga">Ahli Keluarga</option>
             </select>
           </div>
 
@@ -405,10 +403,10 @@
         <div>
           <label class="block font-bold text-slate-700 text-sm mb-1">Kategori</label>
           <select id="edit-kategori" class="w-full p-3 border-2 border-slate-300 rounded-xl focus:border-purple-500 outline-none">
+            <option value="Ahli Keluarga">Ahli Keluarga</option>
             <option value="Kata Nama">Kata Nama</option>
             <option value="Kata Kerja">Kata Kerja</option>
             <option value="Kata Adjektif">Kata Adjektif</option>
-            <option value="Ahli Keluarga">Ahli Keluarga</option>
           </select>
         </div>
 
@@ -518,12 +516,21 @@
     }
 
     // GAMBAR PLACEHOLDER DEFAULT
-    function ciptaPlaceholder(teks, bg = "%2394A3B8") {
-      return `data:image/svg+xml;utf8,<svg xmlns="http://www.w3.org/2000/svg" width="200" height="200" viewBox="0 0 200 200"><rect width="200" height="200" rx="30" fill="${bg}"/><text x="50%" y="45%" dominant-baseline="middle" text-anchor="middle" font-family="sans-serif" font-size="20" font-weight="bold" fill="%23FFFFFF">${teks}</text><text x="50%" y="65%" dominant-baseline="middle" text-anchor="middle" font-family="sans-serif" font-size="12" fill="%23FFFFFF">(Sila Masuk Gambar)</text></svg>`;
+    function ciptaPlaceholder(teks, bg = "%230D9488") {
+      return `data:image/svg+xml;utf8,<svg xmlns="http://www.w3.org/2000/svg" width="200" height="200" viewBox="0 0 200 200"><rect width="200" height="200" rx="30" fill="${bg}"/><text x="50%" y="45%" dominant-baseline="middle" text-anchor="middle" font-family="Fredoka, sans-serif" font-size="22" font-weight="bold" fill="%23FFFFFF">${teks}</text><text x="50%" y="65%" dominant-baseline="middle" text-anchor="middle" font-family="Fredoka, sans-serif" font-size="12" fill="%23FEF08A">(Gambar Sedia Ada)</text></svg>`;
     }
 
-    // DATA ASAS PERKATAAN
+    // DATA ASAS PERKATAAN (Diselaraskan dengan kategori Ahli Keluarga)
     const SENARAI_ASAS = [
+      // Ahli Keluarga
+      { id: 'ak1', kata: 'Ayah', kategori: 'Ahli Keluarga' },
+      { id: 'ak2', kata: 'Ibu', kategori: 'Ahli Keluarga' },
+      { id: 'ak3', kata: 'Abang', kategori: 'Ahli Keluarga' },
+      { id: 'ak4', kata: 'Kakak', kategori: 'Ahli Keluarga' },
+      { id: 'ak5', kata: 'Adik', kategori: 'Ahli Keluarga' },
+      { id: 'ak6', kata: 'Datuk', kategori: 'Ahli Keluarga' },
+      { id: 'ak7', kata: 'Nenek', kategori: 'Ahli Keluarga' },
+
       // Kata Nama
       { id: 'kn1', kata: 'Bola', kategori: 'Kata Nama' },
       { id: 'kn2', kata: 'Buku', kategori: 'Kata Nama' },
@@ -573,16 +580,7 @@
       { id: 'ka12', kata: 'Kotor', kategori: 'Kata Adjektif' },
       { id: 'ka13', kata: 'Cepat', kategori: 'Kata Adjektif' },
       { id: 'ka14', kata: 'Perlahan', kategori: 'Kata Adjektif' },
-      { id: 'ka15', kata: 'Cantik', kategori: 'Kata Adjektif' },
-
-      // Ahli Keluarga
-      { id: 'ak1', kata: 'Ayah', kategori: 'Ahli Keluarga' },
-      { id: 'ak2', kata: 'Ibu', kategori: 'Ahli Keluarga' },
-      { id: 'ak3', kata: 'Abang', kategori: 'Ahli Keluarga' },
-      { id: 'ak4', kata: 'Kakak', kategori: 'Ahli Keluarga' },
-      { id: 'ak5', kata: 'Adik', kategori: 'Ahli Keluarga' },
-      { id: 'ak6', kata: 'Datuk', kategori: 'Ahli Keluarga' },
-      { id: 'ak7', kata: 'Nenek', kategori: 'Ahli Keluarga' }
+      { id: 'ka15', kata: 'Cantik', kategori: 'Kata Adjektif' }
     ];
 
     const PUJIAN = ["Pandainya!", "Bagus!", "Hebat!", "Tahniah!", "Betul!"];
@@ -1148,7 +1146,7 @@
       }
     }
 
-    // LOGIK MUAT NAIK PUKAL AUTOMATIK (DARI PILIHAN BANYAK FAIL)
+    // LOGIK MUAT NAIK PUKAL AUTOMATIK (SANGAT PANTAS DENGAN MULTI-FILE)
     async function prosesPukalAutoFiles(e) {
       e.preventDefault();
       if (!penggunaSemasa) {
@@ -1179,7 +1177,6 @@
           const namaKataClean = bersihkanNamaFail(fail.name);
           const compressedBase64 = await mampatkanGambar(fail, 500, 0.75);
 
-          // Semak jika perkataan wujud dalam senarai (Padanan nama)
           const wujud = senaraiSemua.find(x => x.kata.toLowerCase() === namaKataClean.toLowerCase());
 
           if (wujud) {
