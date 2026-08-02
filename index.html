@@ -142,9 +142,9 @@
       </button>
 
       <button onclick="paparMenu('muat-naik')" class="bg-emerald-400 hover:bg-emerald-500 text-white border-b-8 border-emerald-600 rounded-3xl p-5 flex flex-col items-center justify-center space-y-2 shadow-lg btn-child">
-        <span class="text-5xl">📂</span>
-        <span class="text-2xl font-bold">Muat Naik Pukal Automatik</span>
-        <span class="text-xs bg-black/10 px-3 py-1 rounded-full">Pilih Banyak Gambar Sekaligus</span>
+        <span class="text-5xl">➕</span>
+        <span class="text-2xl font-bold">Tambah Perkataan</span>
+        <span class="text-xs bg-black/10 px-3 py-1 rounded-full">Tambah Kata & Gambar Baru</span>
       </button>
 
       <button onclick="paparMenu('tetapan')" class="bg-indigo-400 hover:bg-indigo-500 text-white border-b-8 border-indigo-600 rounded-3xl p-5 flex flex-col items-center justify-center space-y-2 shadow-lg btn-child">
@@ -239,7 +239,7 @@
     <section id="urus-gambar" class="hidden flex-col space-y-5">
       <div class="bg-purple-100 rounded-3xl p-5 border-4 border-purple-300">
         <h2 class="text-2xl font-bold text-purple-800 mb-1">Urus & Sunting Perkataan</h2>
-        <p class="text-slate-600 text-sm">Semak semua perkataan yang telah dimasukkan. Anda boleh menyunting ejaan atau gambar mana-mana perkataan di sini.</p>
+        <p class="text-slate-600 text-sm">Anda boleh menukar gambar, membetulkan ejaan perkataan, atau menukar kategori. Gambar boleh dimuat naik dari peranti atau ditampal dari pautan Google Drive!</p>
       </div>
 
       <div id="senarai-urus-gambar" class="space-y-4 max-h-[50vh] overflow-y-auto pr-2">
@@ -247,85 +247,46 @@
       </div>
     </section>
 
-    <!-- 6. MUAT NAIK GAMBAR (PUKAL AUTOMATIK / INDIVIDU) -->
+    <!-- 6. MUAT NAIK GAMBAR BAHARU (KUSTOM) -->
     <section id="muat-naik" class="hidden flex-col space-y-5">
-      <div class="flex bg-slate-200 p-1.5 rounded-2xl">
-        <button id="tab-mod-pukal" onclick="tukarTabMuatNaik('pukal')" class="flex-1 bg-white py-2.5 rounded-xl font-bold text-indigo-700 shadow-md transition">
-          ⚡ Muat Naik Pukal Automatik
-        </button>
-        <button id="tab-mod-satu" onclick="tukarTabMuatNaik('satu')" class="flex-1 py-2.5 rounded-xl font-bold text-slate-600 transition">
-          ➕ Tambah Satu Perkataan
-        </button>
+      <div class="bg-emerald-100 rounded-3xl p-5 border-4 border-emerald-300">
+        <h2 class="text-2xl font-bold text-emerald-800 mb-1">Tambah Perkataan Baru</h2>
+        <p class="text-slate-600 text-sm">Tambah perkataan khas berserta gambar (boleh guna fail peranti atau pautan Google Drive).</p>
       </div>
 
-      <!-- BORANG 1: MUAT NAIK PUKAL AUTOMATIK -->
-      <div id="borang-pukal-kontena" class="space-y-4">
-        <div class="bg-indigo-100 rounded-3xl p-5 border-4 border-indigo-300 space-y-2">
-          <h2 class="text-2xl font-bold text-indigo-800">🚀 Muat Naik Pukal Automatik</h2>
-          <p class="text-slate-700 text-sm leading-relaxed">
-            <strong>Cara Penggunaan:</strong><br>
-            1. Pilih <strong>Kategori</strong> di bawah.<br>
-            2. Tekan kawasan muat naik dan pilih fail gambar dari peranti anda.<br>
-            3. Nama perkataan akan dicam daripada nama fail secara automatik (contoh: <code class="bg-white px-1.5 py-0.5 rounded border">Ayah.jpg</code> ➔ <strong>Ayah</strong>)!
-          </p>
+      <form id="form-muatnaik" onsubmit="tambahPerkataanKustom(event)" class="bg-white p-6 rounded-3xl border-4 border-slate-200 space-y-4 shadow-md">
+        <div>
+          <label class="block font-bold text-slate-700 mb-1">Nama Perkataan</label>
+          <input type="text" id="kustom-nama" required placeholder="Contoh: Bantal" class="w-full p-3 border-2 border-slate-300 rounded-xl focus:border-emerald-500 outline-none">
         </div>
 
-        <form id="form-pukal-auto" onsubmit="prosesPukalAutoFiles(event)" class="bg-white p-6 rounded-3xl border-4 border-slate-200 space-y-4 shadow-md">
-          <div>
-            <label class="block font-bold text-slate-700 mb-1">Pilih Kategori Kumpulan Gambar Ini</label>
-            <select id="pukal-kategori-auto" class="w-full p-3 border-2 border-slate-300 rounded-xl focus:border-indigo-500 outline-none font-bold text-slate-800">
-              <option value="Ahli Keluarga">Ahli Keluarga</option>
-              <option value="Kata Nama">Kata Nama</option>
-              <option value="Kata Kerja">Kata Kerja</option>
-              <option value="Kata Adjektif">Kata Adjektif</option>
-            </select>
-          </div>
-
-          <div>
-            <label class="block font-bold text-slate-700 mb-1">Pilih Fail Gambar (Boleh pilih banyak sekaligus)</label>
-            <input type="file" id="pukal-files-input" accept="image/*" multiple required class="w-full p-3 border-2 border-dashed border-indigo-400 bg-indigo-50/50 rounded-2xl cursor-pointer">
-            <p class="text-xs text-slate-500 mt-1">*Boleh tekan `Ctrl+A` atau `Select All` semasa memilih gambar di peranti anda.</p>
-          </div>
-
-          <button type="submit" id="btn-submit-pukal-auto" class="w-full bg-indigo-500 hover:bg-indigo-600 text-white border-b-6 border-indigo-700 rounded-2xl py-3.5 font-bold text-xl btn-child">
-            ⚡ Proses & Simpan Semua Gambar
-          </button>
-        </form>
-      </div>
-
-      <!-- BORANG 2: TAMBAH SATU INDIVIDU -->
-      <div id="borang-satu-kontena" class="hidden space-y-4">
-        <div class="bg-emerald-100 rounded-3xl p-5 border-4 border-emerald-300">
-          <h2 class="text-2xl font-bold text-emerald-800 mb-1">Tambah Satu Perkataan Baru</h2>
-          <p class="text-slate-600 text-sm">Tambah perkataan secara manual berserta satu gambar.</p>
+        <div>
+          <label class="block font-bold text-slate-700 mb-1">Kategori</label>
+          <select id="kustom-kategori" class="w-full p-3 border-2 border-slate-300 rounded-xl focus:border-emerald-500 outline-none">
+            <option value="Kata Nama">Kata Nama</option>
+            <option value="Kata Kerja">Kata Kerja</option>
+            <option value="Kata Adjektif">Kata Adjektif</option>
+            <option value="Ahli Keluarga">Ahli Keluarga</option>
+          </select>
         </div>
 
-        <form id="form-muatnaik" onsubmit="tambahPerkataanKustom(event)" class="bg-white p-6 rounded-3xl border-4 border-slate-200 space-y-4 shadow-md">
-          <div>
-            <label class="block font-bold text-slate-700 mb-1">Nama Perkataan</label>
-            <input type="text" id="kustom-nama" placeholder="Contoh: Bantal" class="w-full p-3 border-2 border-slate-300 rounded-xl focus:border-emerald-500 outline-none">
-          </div>
+        <div>
+          <label class="block font-bold text-slate-700 mb-1">Muat Naik Fail Gambar (Dari Peranti)</label>
+          <input type="file" id="kustom-fail" accept="image/*" class="w-full p-2 border-2 border-slate-300 rounded-xl">
+        </div>
 
-          <div>
-            <label class="block font-bold text-slate-700 mb-1">Kategori</label>
-            <select id="kustom-kategori" class="w-full p-3 border-2 border-slate-300 rounded-xl focus:border-emerald-500 outline-none">
-              <option value="Ahli Keluarga">Ahli Keluarga</option>
-              <option value="Kata Nama">Kata Nama</option>
-              <option value="Kata Kerja">Kata Kerja</option>
-              <option value="Kata Adjektif">Kata Adjektif</option>
-            </select>
-          </div>
+        <div class="text-center font-bold text-slate-400 text-xs">--- ATAU ---</div>
 
-          <div>
-            <label class="block font-bold text-slate-700 mb-1">Pilih Gambar dari Peranti</label>
-            <input type="file" id="kustom-fail" accept="image/*" class="w-full p-2 border-2 border-slate-300 rounded-xl">
-          </div>
+        <div>
+          <label class="block font-bold text-slate-700 mb-1">Pautan URL Gambar / Google Drive Link</label>
+          <input type="url" id="kustom-url" placeholder="https://drive.google.com/file/d/... ATAU https://example.com/image.jpg" class="w-full p-3 border-2 border-slate-300 rounded-xl focus:border-emerald-500 outline-none text-sm">
+          <p class="text-xs text-slate-500 mt-1">*Jika guna Google Drive, pastikan kebenaran diubah kepada "Anyone with the link".</p>
+        </div>
 
-          <button type="submit" id="btn-submit-kustom" class="w-full bg-emerald-500 hover:bg-emerald-600 text-white border-b-6 border-emerald-700 rounded-2xl py-3 font-bold text-xl btn-child">
-            Simpan & Tambah
-          </button>
-        </form>
-      </div>
+        <button type="submit" id="btn-submit-kustom" class="w-full bg-emerald-500 hover:bg-emerald-600 text-white border-b-6 border-emerald-700 rounded-2xl py-3 font-bold text-xl btn-child">
+          Simpan & Tambah
+        </button>
+      </form>
     </section>
 
     <!-- 7. TETAPAN & KEMAJUAN -->
@@ -403,10 +364,10 @@
         <div>
           <label class="block font-bold text-slate-700 text-sm mb-1">Kategori</label>
           <select id="edit-kategori" class="w-full p-3 border-2 border-slate-300 rounded-xl focus:border-purple-500 outline-none">
-            <option value="Ahli Keluarga">Ahli Keluarga</option>
             <option value="Kata Nama">Kata Nama</option>
             <option value="Kata Kerja">Kata Kerja</option>
             <option value="Kata Adjektif">Kata Adjektif</option>
+            <option value="Ahli Keluarga">Ahli Keluarga</option>
           </select>
         </div>
 
@@ -416,8 +377,15 @@
         </div>
 
         <div>
-          <label class="block font-bold text-slate-700 text-sm mb-1">Tukar Gambar</label>
+          <label class="block font-bold text-slate-700 text-sm mb-1">Tukar Gambar (Guna Fail Peranti)</label>
           <input type="file" id="edit-fail-gambar" accept="image/*" class="w-full p-2 border-2 border-slate-300 rounded-xl text-sm">
+        </div>
+
+        <div class="text-center font-bold text-slate-400 text-xs">--- ATAU ---</div>
+
+        <div>
+          <label class="block font-bold text-slate-700 text-sm mb-1">Tukar Gambar (Guna Link Google Drive / URL Web)</label>
+          <input type="url" id="edit-url-gambar" placeholder="https://drive.google.com/file/d/..." class="w-full p-3 border-2 border-slate-300 rounded-xl focus:border-purple-500 outline-none text-sm">
         </div>
 
         <div class="flex space-x-2 pt-2">
@@ -467,14 +435,24 @@
     const db = firebase.database();
     const auth = firebase.auth();
 
-    // EXTRUK & BERSIHKAN NAMA FAIL JADI PERKATAAN
-    function bersihkanNamaFail(namaFail) {
-      let nama = namaFail.substring(0, namaFail.lastIndexOf('.')) || namaFail;
-      nama = nama.replace(/[\d_\-\(\)]+/g, ' ').trim();
-      if (nama.length > 0) {
-        nama = nama.charAt(0).toUpperCase() + nama.slice(1);
+    // HELPER: Tukar Google Drive View Link kepada Direct Image Link Automatik
+    function tukarPautanGoogleDrive(url) {
+      if (!url) return '';
+      let strUrl = url.trim();
+      
+      // Corak 1: https://drive.google.com/file/d/FILE_ID/view...
+      const match1 = strUrl.match(/\/file\/d\/([^\/\?]+)/);
+      if (match1 && match1[1]) {
+        return `https://lh3.googleusercontent.com/d/${match1[1]}`;
       }
-      return nama || 'Perkataan';
+      
+      // Corak 2: https://drive.google.com/open?id=FILE_ID atau uc?id=FILE_ID
+      const match2 = strUrl.match(/[?&]id=([^&]+)/);
+      if (match2 && match2[1]) {
+        return `https://lh3.googleusercontent.com/d/${match2[1]}`;
+      }
+
+      return strUrl;
     }
 
     // FUNGSI MEMAMPATKAN GAMBAR FAIL
@@ -516,21 +494,12 @@
     }
 
     // GAMBAR PLACEHOLDER DEFAULT
-    function ciptaPlaceholder(teks, bg = "%230D9488") {
-      return `data:image/svg+xml;utf8,<svg xmlns="http://www.w3.org/2000/svg" width="200" height="200" viewBox="0 0 200 200"><rect width="200" height="200" rx="30" fill="${bg}"/><text x="50%" y="45%" dominant-baseline="middle" text-anchor="middle" font-family="Fredoka, sans-serif" font-size="22" font-weight="bold" fill="%23FFFFFF">${teks}</text><text x="50%" y="65%" dominant-baseline="middle" text-anchor="middle" font-family="Fredoka, sans-serif" font-size="12" fill="%23FEF08A">(Gambar Sedia Ada)</text></svg>`;
+    function ciptaPlaceholder(teks, bg = "%2394A3B8") {
+      return `data:image/svg+xml;utf8,<svg xmlns="http://www.w3.org/2000/svg" width="200" height="200" viewBox="0 0 200 200"><rect width="200" height="200" rx="30" fill="${bg}"/><text x="50%" y="45%" dominant-baseline="middle" text-anchor="middle" font-family="sans-serif" font-size="20" font-weight="bold" fill="%23FFFFFF">${teks}</text><text x="50%" y="65%" dominant-baseline="middle" text-anchor="middle" font-family="sans-serif" font-size="12" fill="%23FFFFFF">(Sila Masuk Gambar)</text></svg>`;
     }
 
-    // DATA ASAS PERKATAAN (Diselaraskan dengan kategori Ahli Keluarga)
+    // DATA ASAS PERKATAAN
     const SENARAI_ASAS = [
-      // Ahli Keluarga
-      { id: 'ak1', kata: 'Ayah', kategori: 'Ahli Keluarga' },
-      { id: 'ak2', kata: 'Ibu', kategori: 'Ahli Keluarga' },
-      { id: 'ak3', kata: 'Abang', kategori: 'Ahli Keluarga' },
-      { id: 'ak4', kata: 'Kakak', kategori: 'Ahli Keluarga' },
-      { id: 'ak5', kata: 'Adik', kategori: 'Ahli Keluarga' },
-      { id: 'ak6', kata: 'Datuk', kategori: 'Ahli Keluarga' },
-      { id: 'ak7', kata: 'Nenek', kategori: 'Ahli Keluarga' },
-
       // Kata Nama
       { id: 'kn1', kata: 'Bola', kategori: 'Kata Nama' },
       { id: 'kn2', kata: 'Buku', kategori: 'Kata Nama' },
@@ -580,7 +549,16 @@
       { id: 'ka12', kata: 'Kotor', kategori: 'Kata Adjektif' },
       { id: 'ka13', kata: 'Cepat', kategori: 'Kata Adjektif' },
       { id: 'ka14', kata: 'Perlahan', kategori: 'Kata Adjektif' },
-      { id: 'ka15', kata: 'Cantik', kategori: 'Kata Adjektif' }
+      { id: 'ka15', kata: 'Cantik', kategori: 'Kata Adjektif' },
+
+      // Ahli Keluarga
+      { id: 'ak1', kata: 'Ayah', kategori: 'Ahli Keluarga' },
+      { id: 'ak2', kata: 'Ibu', kategori: 'Ahli Keluarga' },
+      { id: 'ak3', kata: 'Abang', kategori: 'Ahli Keluarga' },
+      { id: 'ak4', kata: 'Kakak', kategori: 'Ahli Keluarga' },
+      { id: 'ak5', kata: 'Adik', kategori: 'Ahli Keluarga' },
+      { id: 'ak6', kata: 'Datuk', kategori: 'Ahli Keluarga' },
+      { id: 'ak7', kata: 'Nenek', kategori: 'Ahli Keluarga' }
     ];
 
     const PUJIAN = ["Pandainya!", "Bagus!", "Hebat!", "Tahniah!", "Betul!"];
@@ -672,6 +650,7 @@
         const editsSimpanan = userData.perkataan_edit || {};
         const kustomSimpanan = userData.perkataan_kustom ? Object.values(userData.perkataan_kustom) : [];
 
+        // Bina senarai perkataan asas bersama kemaskini
         senaraiSemua = SENARAI_ASAS.map(item => {
           const editItem = editsSimpanan[item.id] || {};
           return {
@@ -682,6 +661,7 @@
           };
         });
 
+        // Tambah perkataan kustom
         senaraiSemua = [...senaraiSemua, ...kustomSimpanan];
         senaraiPilihan = [...senaraiSemua];
 
@@ -729,26 +709,6 @@
       if (idMenu === 'pilih-perkataan') binaPilihanPerkataan();
       if (idMenu === 'urus-gambar') binaUrusGambar();
       if (idMenu === 'tetapan') kemaskiniLaporan();
-    }
-
-    // TUKAR TAB MUAT NAIK (PUKAL vs SATU)
-    function tukarTabMuatNaik(mod) {
-      const btnSatu = document.getElementById('tab-mod-satu');
-      const btnPukal = document.getElementById('tab-mod-pukal');
-      const borangSatu = document.getElementById('borang-satu-kontena');
-      const borangPukal = document.getElementById('borang-pukal-kontena');
-
-      if (mod === 'satu') {
-        btnSatu.className = "flex-1 bg-white py-2.5 rounded-xl font-bold text-teal-700 shadow-md transition";
-        btnPukal.className = "flex-1 py-2.5 rounded-xl font-bold text-slate-600 transition";
-        borangSatu.classList.remove('hidden');
-        borangPukal.classList.add('hidden');
-      } else {
-        btnPukal.className = "flex-1 bg-white py-2.5 rounded-xl font-bold text-indigo-700 shadow-md transition";
-        btnSatu.className = "flex-1 py-2.5 rounded-xl font-bold text-slate-600 transition";
-        borangPukal.classList.remove('hidden');
-        borangSatu.classList.add('hidden');
-      }
     }
 
     // PEMAHAMAN (TUNJUK GAMBAR)
@@ -1005,6 +965,7 @@
       document.getElementById('edit-kategori').value = item.kategori;
       document.getElementById('edit-pratonton-img').src = item.img;
       document.getElementById('edit-fail-gambar').value = '';
+      document.getElementById('edit-url-gambar').value = item.img.startsWith('http') ? item.img : '';
 
       document.getElementById('modal-edit').classList.remove('hidden');
       document.getElementById('modal-edit').classList.add('flex');
@@ -1021,6 +982,7 @@
       const nama = document.getElementById('edit-nama').value.trim();
       const kategori = document.getElementById('edit-kategori').value;
       const fail = document.getElementById('edit-fail-gambar').files[0];
+      const urlInput = document.getElementById('edit-url-gambar').value;
 
       if (!nama || !penggunaSemasa) return;
 
@@ -1034,8 +996,11 @@
 
         if (fail) {
           barukGambar = await mampatkanGambar(fail, 500, 0.75);
+        } else if (urlInput.trim()) {
+          barukGambar = tukarPautanGoogleDrive(urlInput);
         }
 
+        // Kemaskini tempatan (state)
         if (itemObj) {
           itemObj.kata = nama;
           itemObj.kategori = kategori;
@@ -1049,6 +1014,7 @@
           itemPilihan.img = barukGambar;
         }
 
+        // Simpan ke Firebase Database
         if (id.startsWith('kustom_')) {
           await db.ref(`users/${penggunaSemasa.uid}/perkataan_kustom/${id}`).set({
             id: id,
@@ -1103,15 +1069,16 @@
       }
     }
 
-    // TAMBAH PERKATAAN SATU-SATU
+    // TAMBAH PERKATAAN KUSTOM BAHARU
     async function tambahPerkataanKustom(e) {
       e.preventDefault();
       const nama = document.getElementById('kustom-nama').value.trim();
       const kategori = document.getElementById('kustom-kategori').value;
       const fail = document.getElementById('kustom-fail').files[0];
+      const urlInput = document.getElementById('kustom-url').value;
 
-      if (!nama || !fail || !penggunaSemasa) {
-        alert("Sila masukkan nama perkataan dan pilih fail gambar.");
+      if (!nama || (!fail && !urlInput.trim()) || !penggunaSemasa) {
+        alert("Sila masukkan nama perkataan dan pilih sekurang-kurangnya satu fail gambar ATAU pautan URL/Google Drive.");
         return;
       }
 
@@ -1120,7 +1087,12 @@
         btn.disabled = true;
         btn.innerText = "Memproses Gambar...";
 
-        const finalImg = await mampatkanGambar(fail, 500, 0.75);
+        let finalImg = '';
+        if (fail) {
+          finalImg = await mampatkanGambar(fail, 500, 0.75);
+        } else if (urlInput.trim()) {
+          finalImg = tukarPautanGoogleDrive(urlInput);
+        }
 
         const itemBaharu = {
           id: 'kustom_' + Date.now(),
@@ -1143,79 +1115,6 @@
         const btn = document.getElementById('btn-submit-kustom');
         btn.disabled = false;
         btn.innerText = "Simpan & Tambah";
-      }
-    }
-
-    // LOGIK MUAT NAIK PUKAL AUTOMATIK (SANGAT PANTAS DENGAN MULTI-FILE)
-    async function prosesPukalAutoFiles(e) {
-      e.preventDefault();
-      if (!penggunaSemasa) {
-        alert("Sila log masuk terlebih dahulu.");
-        return;
-      }
-
-      const kategori = document.getElementById('pukal-kategori-auto').value;
-      const filesInput = document.getElementById('pukal-files-input');
-      const files = filesInput.files;
-
-      if (!files || files.length === 0) {
-        alert("Sila pilih sekurang-kurangnya satu gambar.");
-        return;
-      }
-
-      const btn = document.getElementById('btn-submit-pukal-auto');
-      btn.disabled = true;
-
-      const uid = penggunaSemasa.uid;
-      let jumlahBerjaya = 0;
-
-      try {
-        for (let i = 0; i < files.length; i++) {
-          const fail = files[i];
-          btn.innerText = `Memproses (${i + 1}/${files.length}): ${fail.name}...`;
-
-          const namaKataClean = bersihkanNamaFail(fail.name);
-          const compressedBase64 = await mampatkanGambar(fail, 500, 0.75);
-
-          const wujud = senaraiSemua.find(x => x.kata.toLowerCase() === namaKataClean.toLowerCase());
-
-          if (wujud) {
-            wujud.img = compressedBase64;
-            wujud.kategori = kategori;
-
-            await db.ref(`users/${uid}/gambar/${wujud.id}`).set(compressedBase64);
-            await db.ref(`users/${uid}/perkataan_edit/${wujud.id}`).set({
-              kata: wujud.kata,
-              kategori: kategori,
-              img: compressedBase64
-            });
-          } else {
-            const newId = 'kustom_' + Date.now() + '_' + i;
-            const newItem = {
-              id: newId,
-              kata: namaKataClean,
-              kategori: kategori,
-              img: compressedBase64
-            };
-
-            senaraiSemua.push(newItem);
-            senaraiPilihan.push(newItem);
-
-            await db.ref(`users/${uid}/perkataan_kustom/${newId}`).set(newItem);
-          }
-
-          jumlahBerjaya++;
-        }
-
-        alert(`🎉 Tahniah! Berjaya memproses & menyimpan ${jumlahBerjaya} gambar secara automatik bagi kategori "${kategori}"!`);
-        filesInput.value = '';
-        paparMenu('menu-utama');
-
-      } catch (err) {
-        alert("Ralat semasa proses pukal: " + err.message);
-      } finally {
-        btn.disabled = false;
-        btn.innerText = "⚡ Proses & Simpan Semua Gambar";
       }
     }
 
