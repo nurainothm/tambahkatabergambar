@@ -735,24 +735,52 @@
         });
     }
 
+    // MENYIMPAN PERKATAAN DIPILIH & DISUNTING APABILA LOG KELUAR
     async function kawalLogKeluar() {
       if (confirm("Adakah anda pasti mahu log keluar?")) {
-        // Simpan pilihan perkataan sasaran sebelum log keluar
-        if (penggunaSemasa && senaraiPilihan.length > 0) {
-          const dipilihIds = senaraiPilihan.map(x => x.id);
+        if (penggunaSemasa) {
           try {
-            await db.ref(`users/${penggunaSemasa.uid}/pilihan_ids`).set(dipilihIds);
+            const uid = penggunaSemasa.uid;
+
+            // 1. Simpan Pilihan Perkataan Sasaran
+            if (senaraiPilihan.length > 0) {
+              const dipilihIds = senaraiPilihan.map(x => x.id);
+              await db.ref(`users/${uid}/pilihan_ids`).set(dipilihIds);
+            }
+
+            // 2. Simpan Semua Perkataan Yang Telah Disunting / Diubah
+            for (const item of senaraiSemua) {
+              if (item.id.startsWith('kustom_')) {
+                await db.ref(`users/${uid}/perkataan_kustom/${item.id}`).set({
+                  id: item.id,
+                  kata: item.kata,
+                  kategori: item.kategori,
+                  img: item.img
+                });
+              } else {
+                const asal = SENARAI_ASAS.find(a => a.id === item.id);
+                if (asal && (asal.kata !== item.kata || asal.kategori !== item.kategori || item.img !== ciptaPlaceholder(item.kata))) {
+                  await db.ref(`users/${uid}/perkataan_edit/${item.id}`).set({
+                    kata: item.kata,
+                    kategori: item.kategori,
+                    img: item.img
+                  });
+                  await db.ref(`users/${uid}/gambar/${item.id}`).set(item.img);
+                }
+              }
+            }
           } catch (e) {
-            console.error("Ralat menyimpan pilihan semasa log keluar:", e);
+            console.error("Ralat menyimpan data semasa log keluar:", e);
           }
         }
+
         auth.signOut().then(() => {
           paparMenu('skrin-auth');
         });
       }
     }
 
-    // MUAT DATA PENGGUNA DARI FIREBASE (Termasuk Pilihan Perkataan)
+    // MUAT DATA PENGGUNA DARI FIREBASE (Termasuk Pilihan Perkataan & Suntingan)
     function muatDataPengguna(uid) {
       db.ref('users/' + uid).once('value').then(snapshot => {
         const userData = snapshot.val() || {};
@@ -855,7 +883,6 @@
         return;
       }
       
-      // Susun rawak senarai perkataan yang DIPILIH sahaja untuk sesi ini
       senaraiLatihanSemasa = [...senaraiPilihan].sort(() => Math.random() - 0.5);
       indeksSemasa = 0;
 
@@ -874,13 +901,10 @@
       const sasaran = senaraiLatihanSemasa[indeksSemasa];
       sasaranSasaran = sasaran;
 
-      // Kemaskini Indikator Bilangan Soalan
       document.getElementById('indikator-kemajuan-pemahaman').innerText = `Soalan ${indeksSemasa + 1} daripada ${senaraiLatihanSemasa.length}`;
 
-      // Pilihan Pengacau (Distractor) Wajib dari Kategori yang SAMA
       let pengacauSamaKategori = senaraiSemua.filter(x => x.id !== sasaran.id && x.kategori === sasaran.kategori);
 
-      // Fallback jika tiada gambar lain dalam kategori sama
       if (pengacauSamaKategori.length === 0) {
         pengacauSamaKategori = senaraiSemua.filter(x => x.id !== sasaran.id);
       }
@@ -947,7 +971,6 @@
       const item = senaraiLatihanSemasa[indeksSemasa];
       sasaranSasaran = item;
 
-      // Kemaskini Indikator Bilangan Soalan
       document.getElementById('indikator-kemajuan-ekspresif').innerText = `Soalan ${indeksSemasa + 1} daripada ${senaraiLatihanSemasa.length}`;
 
       document.getElementById('img-ekspresif').src = item.img;
@@ -1021,7 +1044,7 @@
       }
     }
 
-    // TAMAT SESI LATIHAN (APABILA SEMUA PERKATAAN DIPILIH SELESAI)
+    // TAMAT SESI LATIHAN
     function tamatSesiLatihan() {
       bilLatihanSelesai++;
       document.getElementById('stat-selesai').innerText = bilLatihanSelesai;
@@ -1105,7 +1128,6 @@
 
       senaraiPilihan = dipilihs;
 
-      // Simpan Pilihan ID ke Firebase
       if (penggunaSemasa) {
         try {
           await db.ref(`users/${penggunaSemasa.uid}/pilihan_ids`).set(dipilihIds);
