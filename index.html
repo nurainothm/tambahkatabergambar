@@ -161,8 +161,12 @@
 
     <!-- 2. PEMAHAMAN (TUNJUK GAMBAR) -->
     <section id="pemahaman" class="hidden flex-col items-center space-y-6">
-      <div class="bg-white rounded-3xl p-6 shadow-xl border-4 border-amber-300 w-full text-center space-y-4">
-        <div class="flex items-center justify-center space-x-3">
+      <div class="bg-white rounded-3xl p-6 shadow-xl border-4 border-amber-300 w-full text-center space-y-3">
+        <div class="flex justify-between items-center border-b pb-2">
+          <span id="indikator-kemajuan-pemahaman" class="bg-teal-100 text-teal-800 font-bold px-3 py-1 rounded-full text-xs">Soalan 1 daripada 1</span>
+          <span class="text-xs font-semibold text-slate-400">Pemahaman</span>
+        </div>
+        <div class="flex items-center justify-center space-x-3 pt-2">
           <h2 id="arahan-pemahaman" class="text-2xl md:text-3xl font-bold text-teal-700">Tunjukkan Bola.</h2>
           <button onclick="sebutTeks(document.getElementById('arahan-pemahaman').innerText)" class="bg-amber-400 p-3 rounded-full shadow text-xl btn-child">🔊</button>
         </div>
@@ -188,8 +192,12 @@
 
     <!-- 3. EKSPRESIF (SEBUT PERKATAAN) -->
     <section id="ekspresif" class="hidden flex-col items-center space-y-6">
-      <div class="bg-white rounded-3xl p-6 shadow-xl border-4 border-rose-300 w-full text-center space-y-4">
-        <div class="flex items-center justify-center space-x-3">
+      <div class="bg-white rounded-3xl p-6 shadow-xl border-4 border-rose-300 w-full text-center space-y-3">
+        <div class="flex justify-between items-center border-b pb-2">
+          <span id="indikator-kemajuan-ekspresif" class="bg-rose-100 text-rose-800 font-bold px-3 py-1 rounded-full text-xs">Soalan 1 daripada 1</span>
+          <span class="text-xs font-semibold text-slate-400">Ekspresif</span>
+        </div>
+        <div class="flex items-center justify-center space-x-3 pt-2">
           <h2 class="text-2xl md:text-3xl font-bold text-rose-600">Ini apa?</h2>
           <button onclick="sebutTeks('Ini apa?')" class="bg-rose-400 text-white p-3 rounded-full shadow text-xl btn-child">🔊</button>
         </div>
@@ -466,7 +474,7 @@
     <div class="bg-white rounded-3xl p-8 max-w-sm w-full text-center space-y-5 border-8 border-amber-400 shadow-2xl transform scale-100">
       <div class="text-7xl star-anim">🎉</div>
       <h2 class="text-3xl font-bold text-teal-700">Hebat!</h2>
-      <p class="text-xl font-semibold text-slate-600">Anda telah menyelesaikan 10 latihan!</p>
+      <p id="modal-ganjaran-teks" class="text-lg font-semibold text-slate-600">Anda telah menyelesaikan latihan untuk semua perkataan yang dipilih!</p>
       <button onclick="tutupGanjaran()" class="w-full bg-amber-400 hover:bg-amber-500 text-slate-900 border-b-6 border-amber-600 rounded-2xl py-3 font-bold text-xl btn-child">
         Teruskan Latihan
       </button>
@@ -620,6 +628,7 @@
     let modDaftar = false;
     let senaraiSemua = [];
     let senaraiPilihan = [];
+    let senaraiLatihanSemasa = [];
     let indeksSemasa = 0;
     let sasaranSasaran = null;
     let soalanPemahaman = [];
@@ -726,21 +735,31 @@
         });
     }
 
-    function kawalLogKeluar() {
+    async function kawalLogKeluar() {
       if (confirm("Adakah anda pasti mahu log keluar?")) {
+        // Simpan pilihan perkataan sasaran sebelum log keluar
+        if (penggunaSemasa && senaraiPilihan.length > 0) {
+          const dipilihIds = senaraiPilihan.map(x => x.id);
+          try {
+            await db.ref(`users/${penggunaSemasa.uid}/pilihan_ids`).set(dipilihIds);
+          } catch (e) {
+            console.error("Ralat menyimpan pilihan semasa log keluar:", e);
+          }
+        }
         auth.signOut().then(() => {
           paparMenu('skrin-auth');
         });
       }
     }
 
-    // MUAT DATA PENGGUNA DARI FIREBASE
+    // MUAT DATA PENGGUNA DARI FIREBASE (Termasuk Pilihan Perkataan)
     function muatDataPengguna(uid) {
       db.ref('users/' + uid).once('value').then(snapshot => {
         const userData = snapshot.val() || {};
         const gambarSimpanan = userData.gambar || {};
         const editsSimpanan = userData.perkataan_edit || {};
         const kustomSimpanan = userData.perkataan_kustom ? Object.values(userData.perkataan_kustom) : [];
+        const pilihanIds = userData.pilihan_ids || null;
 
         senaraiSemua = SENARAI_ASAS.map(item => {
           const editItem = editsSimpanan[item.id] || {};
@@ -753,7 +772,14 @@
         });
 
         senaraiSemua = [...senaraiSemua, ...kustomSimpanan];
-        senaraiPilihan = [...senaraiSemua];
+
+        // Pulihkan Pilihan Perkataan Pengguna jika wujud
+        if (pilihanIds && Array.isArray(pilihanIds) && pilihanIds.length > 0) {
+          const wujudPilihan = senaraiSemua.filter(x => pilihanIds.includes(x.id));
+          senaraiPilihan = wujudPilihan.length > 0 ? wujudPilihan : [...senaraiSemua];
+        } else {
+          senaraiPilihan = [...senaraiSemua];
+        }
 
         paparMenu('menu-utama');
       }).catch(err => {
@@ -821,26 +847,46 @@
       }
     }
 
-    // PEMAHAMAN (TUNJUK GAMBAR)
+    // MULA AKTIVITI (PEMAHAMAN & EKSPRESIF BERDASARKAN PERKATAAN DIPILIH)
     function mulaAktiviti(jenis) {
-      indeksSemasa = 0;
       if (senaraiPilihan.length === 0) {
         alert("Sila pilih sekurang-kurangnya satu perkataan dalam menu Pilih Perkataan.");
         paparMenu('pilih-perkataan');
         return;
       }
+      
+      // Susun rawak senarai perkataan yang DIPILIH sahaja untuk sesi ini
+      senaraiLatihanSemasa = [...senaraiPilihan].sort(() => Math.random() - 0.5);
+      indeksSemasa = 0;
+
       paparMenu(jenis);
       if (jenis === 'pemahaman') paparkanSoalanPemahaman();
       if (jenis === 'ekspresif') paparkanSoalanEkspresif();
     }
 
+    // PEMAHAMAN (TUNJUK GAMBAR)
     function paparkanSoalanPemahaman() {
-      const sasaran = senaraiPilihan[indeksSemasa % senaraiPilihan.length];
+      if (indeksSemasa >= senaraiLatihanSemasa.length) {
+        tamatSesiLatihan();
+        return;
+      }
+
+      const sasaran = senaraiLatihanSemasa[indeksSemasa];
       sasaranSasaran = sasaran;
 
-      let pengacau = senaraiSemua.filter(x => x.id !== sasaran.id);
-      let pilihanLain = pengacau.length > 0 
-        ? pengacau[Math.floor(Math.random() * pengacau.length)]
+      // Kemaskini Indikator Bilangan Soalan
+      document.getElementById('indikator-kemajuan-pemahaman').innerText = `Soalan ${indeksSemasa + 1} daripada ${senaraiLatihanSemasa.length}`;
+
+      // Pilihan Pengacau (Distractor) Wajib dari Kategori yang SAMA
+      let pengacauSamaKategori = senaraiSemua.filter(x => x.id !== sasaran.id && x.kategori === sasaran.kategori);
+
+      // Fallback jika tiada gambar lain dalam kategori sama
+      if (pengacauSamaKategori.length === 0) {
+        pengacauSamaKategori = senaraiSemua.filter(x => x.id !== sasaran.id);
+      }
+
+      let pilihanLain = pengacauSamaKategori.length > 0 
+        ? pengacauSamaKategori[Math.floor(Math.random() * pengacauSamaKategori.length)]
         : sasaran;
 
       soalanPemahaman = [sasaran, pilihanLain].sort(() => Math.random() - 0.5);
@@ -884,13 +930,25 @@
 
     function seterusnyaPemahaman() {
       indeksSemasa++;
-      paparkanSoalanPemahaman();
+      if (indeksSemasa >= senaraiLatihanSemasa.length) {
+        tamatSesiLatihan();
+      } else {
+        paparkanSoalanPemahaman();
+      }
     }
 
     // EKSPRESIF (SEBUT PERKATAAN & RAKAM)
     function paparkanSoalanEkspresif() {
-      const item = senaraiPilihan[indeksSemasa % senaraiPilihan.length];
+      if (indeksSemasa >= senaraiLatihanSemasa.length) {
+        tamatSesiLatihan();
+        return;
+      }
+
+      const item = senaraiLatihanSemasa[indeksSemasa];
       sasaranSasaran = item;
+
+      // Kemaskini Indikator Bilangan Soalan
+      document.getElementById('indikator-kemajuan-ekspresif').innerText = `Soalan ${indeksSemasa + 1} daripada ${senaraiLatihanSemasa.length}`;
 
       document.getElementById('img-ekspresif').src = item.img;
       document.getElementById('label-ekspresif').innerText = item.kata;
@@ -956,10 +1014,33 @@
 
     function seterusnyaEkspresif() {
       indeksSemasa++;
-      paparkanSoalanEkspresif();
+      if (indeksSemasa >= senaraiLatihanSemasa.length) {
+        tamatSesiLatihan();
+      } else {
+        paparkanSoalanEkspresif();
+      }
     }
 
-    // PILIH PERKATAAN
+    // TAMAT SESI LATIHAN (APABILA SEMUA PERKATAAN DIPILIH SELESAI)
+    function tamatSesiLatihan() {
+      bilLatihanSelesai++;
+      document.getElementById('stat-selesai').innerText = bilLatihanSelesai;
+
+      document.getElementById('modal-ganjaran-teks').innerText = `Anda telah menyelesaikan latihan untuk kesemua ${senaraiLatihanSemasa.length} perkataan sasaran yang dipilih!`;
+      document.getElementById('modal-ganjaran').classList.remove('hidden');
+      document.getElementById('modal-ganjaran').classList.add('flex');
+
+      confetti({ particleCount: 150, spread: 100, origin: { y: 0.5 } });
+      sebutTeks("Tahniah! Anda telah menyelesaikan semua latihan!");
+    }
+
+    function tutupGanjaran() {
+      document.getElementById('modal-ganjaran').classList.add('hidden');
+      document.getElementById('modal-ganjaran').classList.remove('flex');
+      paparMenu('menu-utama');
+    }
+
+    // PILIH PERKATAAN & SIMPAN KE FIREBASE
     function binaPilihanPerkataan() {
       const kontena = document.getElementById('senarai-kategori-pilihan');
       kontena.innerHTML = "";
@@ -1002,14 +1083,18 @@
       inputs.forEach(i => i.checked = status);
     }
 
-    function simpanPilihanPerkataan() {
+    async function simpanPilihanPerkataan() {
       const inputs = document.querySelectorAll('#senarai-kategori-pilihan input[type="checkbox"]');
       const dipilihs = [];
+      const dipilihIds = [];
       inputs.forEach(i => {
         if (i.checked) {
           const id = i.getAttribute('data-id');
           const item = senaraiSemua.find(x => x.id === id);
-          if (item) dipilihs.push(item);
+          if (item) {
+            dipilihs.push(item);
+            dipilihIds.push(id);
+          }
         }
       });
 
@@ -1019,7 +1104,17 @@
       }
 
       senaraiPilihan = dipilihs;
-      alert("Pilihan perkataan sasaran disimpan!");
+
+      // Simpan Pilihan ID ke Firebase
+      if (penggunaSemasa) {
+        try {
+          await db.ref(`users/${penggunaSemasa.uid}/pilihan_ids`).set(dipilihIds);
+        } catch (err) {
+          console.error("Ralat simpan pilihan:", err);
+        }
+      }
+
+      alert(`Pilihan ${senaraiPilihan.length} perkataan sasaran berjaya disimpan!`);
       paparMenu('menu-utama');
     }
 
@@ -1292,20 +1387,7 @@
     // GANJARAN BINTANG
     function tambahBintang() {
       bilBintang++;
-      bilLatihanSelesai++;
       document.getElementById('jumlah-bintang').innerText = bilBintang;
-
-      if (bilLatihanSelesai % 10 === 0) {
-        document.getElementById('modal-ganjaran').classList.remove('hidden');
-        document.getElementById('modal-ganjaran').classList.add('flex');
-        confetti({ particleCount: 150, spread: 100, origin: { y: 0.5 } });
-        sebutTeks("Hebat! Anda sudah selesai!");
-      }
-    }
-
-    function tutupGanjaran() {
-      document.getElementById('modal-ganjaran').classList.add('hidden');
-      document.getElementById('modal-ganjaran').classList.remove('flex');
     }
 
     // TETAPAN & LAPORAN
